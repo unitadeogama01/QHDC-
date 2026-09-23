@@ -1,0 +1,31 @@
+HISTORIAS DE USUARIO - ¿Qué Hay de Comer? (QHDC!)
+
+HU-01 - Registro de alimentos
+Como usuario, quiero registrar los alimentos que tengo en mi despensa o refrigerador, para mantener un inventario digital de mis productos.
+
+HU-02 - Consulta de cantidades
+Como usuario, quiero consultar la cantidad disponible de cada alimento, para conocer qué productos tengo disponibles.
+
+HU-03 - Actualización mediante sensores IoT
+Como usuario, quiero que el sistema reciba automáticamente los datos de los sensores IoT, para actualizar las cantidades de los alimentos sin tener que hacerlo manualmente.
+
+HU-04 - Registro de fechas de caducidad
+Como usuario, quiero registrar las fechas de caducidad de mis alimentos, para recibir avisos antes de que caduquen.
+
+HU-05 - Recomendaciones mediante IA
+Como usuario, quiero que la inteligencia artificial analice mis alimentos y sus fechas de caducidad, para recomendarme qué productos debería consumir primero.
+
+HU-06 - Predicción de consumo
+Como usuario, quiero que la inteligencia artificial analice mis hábitos de consumo, para predecir cuándo necesitaré comprar nuevamente determinados productos.
+
+HU-07 - Lista de compras automática
+Como usuario, quiero que el sistema genere automáticamente una lista de compras, para saber qué productos necesito reponer.
+
+HU-08 - Recomendación de recetas
+Como usuario, quiero recibir recomendaciones de recetas basadas en los alimentos disponibles, para aprovechar mejor los productos que tengo y reducir el desperdicio de comida.
+
+HU-09 - Consulta desde cualquier dispositivo
+Como usuario, quiero consultar el estado de mi despensa o refrigerador desde una aplicación web, para poder revisar mis alimentos desde cualquier dispositivo con conexión a Internet.
+
+HU-10 - Identificación de alimentos mediante IA
+Como usuario, quiero que la inteligencia artificial identifique los alimentos mediante una cámara, para registrar o actualizar productos de manera automática.
