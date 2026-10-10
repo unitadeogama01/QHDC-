@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QHDC! — ¿Qué Hay de Comer?</title>
+  <meta name="description" content="Despensa inteligente con IoT e Inteligencia Artificial para no desperdiciar comida ni gastar de más.">
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/index.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body>
+  <a class="saltar" href="#inicio">Saltar al contenido</a>
+
+  <!-- ==================== NAVEGACIÓN ==================== -->
+  <header class="nav" id="nav">
+    <div class="contenedor nav-contenido">
+      <a href="index.html" class="logo">
+        <img src="img/LOGO.png" alt="" class="logo-img">
+        <span class="logo-texto">QHDC!</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks" aria-label="Secciones">
+        <a href="#problema">El problema</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#funciones">Funciones</a>
+        <a href="#equipo">Equipo</a>
+      </nav>
+
+      <div class="nav-acciones">
+        <button class="btn-icono" id="btnSonido" type="button" data-sonido="ninguno"></button>
+        <button class="btn-icono" id="btnTema" type="button"></button>
+        <a href="login.html" class="btn btn-principal nav-entrar" id="btnEntrar"><i class="fa-solid fa-right-to-bracket"></i> <span>Entrar</span></a>
+        <button class="menu-toggle btn-icono" id="menuToggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <!-- ==================== PORTADA ==================== -->
+    <section class="hero">
+      <div class="contenedor hero-contenido">
+        <div class="hero-texto">
+          <span class="etiqueta"><i class="fa-solid fa-microchip"></i> IoT + Inteligencia Artificial</span>
+          <h1>
+            ¿Qué hay de comer?
+            <span class="resaltado">Tu cocina ya lo sabe.</span>
+          </h1>
+          <p>
+            QHDC! pesa tus alimentos, te avisa antes de que algo caduque,
+            arma la lista del súper sola y te dice qué cocinar con lo que ya tienes.
+          </p>
+          <div class="hero-botones">
+            <a href="registro.html" class="btn btn-principal btn-lg"><i class="fa-solid fa-user-plus"></i> Crear cuenta</a>
+            <a href="#como-funciona" class="btn btn-lg"><i class="fa-solid fa-circle-play"></i> Cómo funciona</a>
+          </div>
+        </div>
+
+        <!-- Ilustración interactiva: el refri -->
+        <div class="hero-visual">
+          <div class="refri" aria-hidden="true">
+            <div class="refri-puerta">
+              <div class="repisa-hero">
+                <div class="frasco medio" style="--t:70px; --nivel:55%" id="f1"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-wheat-awn"></i></span></div>
+                <div class="frasco bajo" style="--t:70px; --nivel:15%" id="f2"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-bowl-rice"></i></span></div>
+                <div class="frasco" style="--t:70px; --nivel:80%" id="f3"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-mug-hot"></i></span></div>
+              </div>
+              <div class="repisa-hero">
+                <div class="frasco" style="--t:70px; --nivel:90%"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-egg"></i></span></div>
+                <div class="frasco medio" style="--t:70px; --nivel:40%"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-cheese"></i></span></div>
+                <div class="frasco" style="--t:70px; --nivel:70%"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-carrot"></i></span></div>
+              </div>
+            </div>
+            <span class="refri-jaladera"></span>
+          </div>
+
+          <div class="nota-hero n1"><i class="fa-solid fa-hourglass-end"></i> El pollo caduca mañana</div>
+          <div class="nota-hero n2"><i class="fa-solid fa-cart-plus"></i> Arroz a la lista</div>
+
+          <button class="plato-hero" id="platoHero" type="button" data-sonido="ninguno" aria-label="¿Qué hay de comer? Toca para descubrirlo">
+            <span class="plato-icono" id="platoIcono"><i class="fa-solid fa-utensils"></i></span>
+            <span class="plato-texto" id="platoTexto">¿Qué hay de comer?<small>Tócame</small></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cinta" aria-hidden="true">
+        <div class="cinta-pista">
+          <span><i class="fa-solid fa-leaf"></i> Menos desperdicio</span><span><i class="fa-solid fa-piggy-bank"></i> Compras más inteligentes</span><span><i class="fa-solid fa-bell"></i> Avisos a tiempo</span><span><i class="fa-solid fa-utensils"></i> Ideas para cocinar</span><span><i class="fa-solid fa-tower-broadcast"></i> Sensores en tu cocina</span>
+          <span><i class="fa-solid fa-leaf"></i> Menos desperdicio</span><span><i class="fa-solid fa-piggy-bank"></i> Compras más inteligentes</span><span><i class="fa-solid fa-bell"></i> Avisos a tiempo</span><span><i class="fa-solid fa-utensils"></i> Ideas para cocinar</span><span><i class="fa-solid fa-tower-broadcast"></i> Sensores en tu cocina</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== EL PROBLEMA ==================== -->
+    <section class="seccion" id="problema">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta">El problema</span>
+          <h2>A todos nos pasa en casa</h2>
+          <p>Pequeños descuidos que, sumados, son comida a la basura y dinero perdido.</p>
+        </div>
+        <div class="grid-4 revelar">
+          <article class="tarjeta problema"><span class="icono-grande"><i class="fa-solid fa-clone"></i></span><h3>Compramos repetido</h3><p>Llegamos del súper con algo que ya teníamos.</p></article>
+          <article class="tarjeta problema"><span class="icono-grande"><i class="fa-solid fa-eye-slash"></i></span><h3>Olvidamos cosas</h3><p>Lo del fondo del refri se pierde de vista.</p></article>
+          <article class="tarjeta problema"><span class="icono-grande"><i class="fa-solid fa-calendar-xmark"></i></span><h3>Se caduca</h3><p>Nos damos cuenta cuando ya es tarde.</p></article>
+          <article class="tarjeta problema"><span class="icono-grande"><i class="fa-solid fa-circle-question"></i></span><h3>¿Y qué cocino?</h3><p>Hay ingredientes, pero no ideas.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CÓMO FUNCIONA ==================== -->
+    <section class="seccion seccion-oscura" id="como-funciona">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta">Cómo funciona</span>
+          <h2>De la báscula a tu plato</h2>
+        </div>
+        <ol class="pasos revelar">
+          <li class="paso"><span class="paso-num">1</span><span class="paso-icono"><i class="fa-solid fa-scale-balanced"></i></span><h3>El sensor pesa</h3><p>Una báscula mide cuánto queda de cada producto.</p></li>
+          <li class="paso"><span class="paso-num">2</span><span class="paso-icono"><i class="fa-solid fa-wifi"></i></span><h3>El ESP32 envía</h3><p>Los datos viajan por WiFi, sin que hagas nada.</p></li>
+          <li class="paso"><span class="paso-num">3</span><span class="paso-icono"><i class="fa-solid fa-mobile-screen"></i></span><h3>La app organiza</h3><p>Tu alacena, avisos y lista se actualizan solos.</p></li>
+          <li class="paso"><span class="paso-num">4</span><span class="paso-icono"><i class="fa-solid fa-robot"></i></span><h3>La IA recomienda</h3><p>Qué usar primero, qué comprar y qué cocinar.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ==================== FUNCIONES ==================== -->
+    <section class="seccion" id="funciones">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta">Funciones</span>
+          <h2>Todo lo que hace QHDC!</h2>
+        </div>
+        <div class="grid-4 revelar">
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-oliva"><i class="fa-solid fa-jar"></i></span><span class="hu">HU-01 · HU-02</span><h3>Tu alacena digital</h3><p>Cada alimento es un frasco que muestra cuánto queda.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-tomate"><i class="fa-solid fa-tower-broadcast"></i></span><span class="hu">HU-03</span><h3>Sensores IoT</h3><p>Las básculas actualizan las cantidades solas.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-mostaza"><i class="fa-solid fa-bell"></i></span><span class="hu">HU-04</span><h3>Avisos de caducidad</h3><p>Notas en tu refri digital antes de que algo se eche a perder.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-oliva"><i class="fa-solid fa-ranking-star"></i></span><span class="hu">HU-05</span><h3>Usa esto primero</h3><p>La IA ordena qué conviene consumir antes.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-tomate"><i class="fa-solid fa-chart-line"></i></span><span class="hu">HU-06</span><h3>¿Cuánto me dura?</h3><p>Aprende tu ritmo y calcula cuándo se acaba cada cosa.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-mostaza"><i class="fa-solid fa-receipt"></i></span><span class="hu">HU-07</span><h3>Lista que se arma sola</h3><p>Con prioridades y el total aproximado.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-oliva"><i class="fa-solid fa-fire-burner"></i></span><span class="hu">HU-08</span><h3>Recetas y modo cocina</h3><p>Paso a paso, con temporizador, usando lo que tienes.</p></article>
+          <article class="tarjeta funcion"><span class="funcion-icono fondo-tomate"><i class="fa-solid fa-camera"></i></span><span class="hu">HU-10</span><h3>Escanea con la cámara</h3><p>Una foto y tus compras quedan registradas.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MULTIDISPOSITIVO ==================== -->
+    <section class="seccion-dispositivos">
+      <div class="contenedor dispositivos">
+        <div class="dispositivos-iconos" aria-hidden="true">
+          <i class="fa-solid fa-laptop"></i><i class="fa-solid fa-tablet-screen-button"></i><i class="fa-solid fa-mobile-screen"></i>
+        </div>
+        <div class="dispositivos-texto">
+          <span class="hu hu-claro">HU-09</span>
+          <h2>Tu cocina en el bolsillo</h2>
+          <p>Funciona en computadora, tablet y celular. ¿Estás en el súper? Abre tu lista y revisa qué hay en casa.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TECNOLOGÍAS ==================== -->
+    <section class="seccion seccion-crema">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta">Tecnologías</span>
+          <h2>¿Con qué está hecho?</h2>
+        </div>
+        <ul class="tecnologias revelar">
+          <li><i class="fa-brands fa-html5"></i> HTML</li>
+          <li><i class="fa-brands fa-css3-alt"></i> CSS</li>
+          <li><i class="fa-brands fa-js"></i> JavaScript</li>
+          <li><i class="fa-brands fa-node-js"></i> Node.js</li>
+          <li><i class="fa-solid fa-database"></i> Base de datos</li>
+          <li><i class="fa-solid fa-robot"></i> Inteligencia Artificial</li>
+          <li><i class="fa-solid fa-microchip"></i> ESP32</li>
+          <li><i class="fa-solid fa-scale-balanced"></i> HX711</li>
+          <li><i class="fa-solid fa-wind"></i> MQ-135</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ==================== EQUIPO ==================== -->
+    <section class="seccion" id="equipo">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta"><i class="fa-solid fa-users"></i> Equipo</span>
+          <h2>Somos ARK SYSTEMS</h2>
+          <p>Seis personas con una misión: que en casa no se tire comida.</p>
+        </div>
+        <div class="grid-3 revelar">
+          <article class="tarjeta integrante"><span class="avatar-equipo">DA</span><h3>Diego Rafael Ávila Peralta</h3><p>Integrante</p></article>
+          <article class="tarjeta integrante"><span class="avatar-equipo a2">TC</span><h3>Tadeo Habith Contreras Gama</h3><p>Integrante</p></article>
+          <article class="tarjeta integrante"><span class="avatar-equipo a3">AG</span><h3>Axel González Rivera</h3><p>Integrante</p></article>
+          <article class="tarjeta integrante"><span class="avatar-equipo a4">RO</span><h3>Rodrigo Ortega Maldonado</h3><p>Integrante</p></article>
+          <article class="tarjeta integrante"><span class="avatar-equipo">MR</span><h3>Marilú Ramírez López</h3><p>Integrante</p></article>
+          <article class="tarjeta integrante"><span class="avatar-equipo a2">HT</span><h3>Héctor Jesús Tabarez López</h3><p>Integrante</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== LLAMADO FINAL ==================== -->
+    <section class="cta">
+      <div class="contenedor">
+        <div class="cta-contenido">
+          <h2>Deja de preguntarte qué hay de comer.</h2>
+          <p>Tu cocina, organizada sola.</p>
+          <a href="login.html" class="btn btn-lg btn-oscuro"><i class="fa-solid fa-right-to-bracket"></i> Entrar a QHDC!</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-contenido">
+      <a href="index.html" class="logo"><img src="img/LOGO.png" alt="" class="logo-img"><span class="logo-texto">QHDC!</span></a>
+      <p>ARK SYSTEMS · 2026</p>
+    </div>
+  </footer>
+
+  <script src="js/index.js"></script>
+</body>
+</html>

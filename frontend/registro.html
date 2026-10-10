@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear cuenta — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body>
+  <main class="auth">
+    <section class="auth-marca">
+      <a href="index.html" class="logo"><img src="img/LOGO.png" alt="" class="logo-img"><span class="logo-texto">QHDC!</span></a>
+      <div>
+        <h1>Tu cocina, organizada en un minuto.</h1>
+        <p>Crea tu hogar, conecta tus básculas e invita a tu familia cuando quieras.</p>
+        <div class="estante-auth" aria-hidden="true">
+          <div class="frasco" style="--t:62px; --nivel:90%"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-lemon"></i></span></div>
+          <div class="frasco" style="--t:62px; --nivel:65%"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-mug-hot"></i></span></div>
+          <div class="frasco medio" style="--t:62px; --nivel:40%"><span class="tapa"></span><span class="cuerpo"><span class="liquido"></span></span><span class="icono"><i class="fa-solid fa-wheat-awn"></i></span></div>
+        </div>
+      </div>
+      <small>ARK SYSTEMS · 2026</small>
+    </section>
+
+    <section class="auth-form">
+      <div class="auth-arriba">
+        <a href="login.html" class="volver"><i class="fa-solid fa-arrow-left"></i> Ya tengo cuenta</a>
+        <button class="btn-icono" id="btnTema" type="button"></button>
+      </div>
+
+      <div class="auth-caja">
+        <div class="etapas" id="etapas" aria-hidden="true"><span class="hecha"></span><span></span><span></span></div>
+        <h2 id="tituloEtapa">¡Hola! ¿Cómo te llamas?</h2>
+        <p id="textoEtapa">Paso 1 de 3</p>
+
+        <form id="formRegistro" novalidate>
+          <div class="mensaje-error oculto" id="error" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span></span></div>
+
+          <!-- Etapa 1 -->
+          <div class="etapa" data-etapa="0">
+            <div class="campo">
+              <label for="nombre">Tu nombre</label>
+              <div class="control-icono"><i class="fa-solid fa-user"></i><input class="control" id="nombre" placeholder="Ej. Tadeo Contreras" autocomplete="name"></div>
+            </div>
+            <div class="campo">
+              <label for="email">Tu correo</label>
+              <div class="control-icono"><i class="fa-solid fa-envelope"></i><input class="control" type="email" id="email" placeholder="tu@correo.com" autocomplete="email"></div>
+            </div>
+          </div>
+
+          <!-- Etapa 2 -->
+          <div class="etapa oculto" data-etapa="1">
+            <div class="campo">
+              <label for="hogar">Nombre de tu hogar</label>
+              <div class="control-icono"><i class="fa-solid fa-house"></i><input class="control" id="hogar" placeholder="Ej. Casa Contreras"></div>
+            </div>
+            <div class="campo">
+              <span class="etq" id="etqPersonas">¿Cuántos viven ahí?</span>
+              <div class="chips" role="group" aria-labelledby="etqPersonas" id="personas">
+                <button class="chip" type="button" aria-pressed="false"><i class="fa-solid fa-user"></i> 1 a 2</button>
+                <button class="chip" type="button" aria-pressed="true"><i class="fa-solid fa-user-group"></i> 3 a 4</button>
+                <button class="chip" type="button" aria-pressed="false"><i class="fa-solid fa-people-group"></i> 5 o más</button>
+              </div>
+            </div>
+            <div class="campo">
+              <span class="etq" id="etqLugares">¿Dónde guardas comida?</span>
+              <div class="chips" role="group" aria-labelledby="etqLugares" id="lugares">
+                <button class="chip" type="button" aria-pressed="true"><i class="fa-solid fa-snowflake"></i> Refrigerador</button>
+                <button class="chip" type="button" aria-pressed="true"><i class="fa-solid fa-box-archive"></i> Despensa</button>
+                <button class="chip" type="button" aria-pressed="false"><i class="fa-solid fa-icicles"></i> Congelador</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Etapa 3 -->
+          <div class="etapa oculto" data-etapa="2">
+            <div class="campo">
+              <label for="password">Contraseña</label>
+              <div class="control-icono">
+                <i class="fa-solid fa-lock"></i>
+                <input class="control con-boton" type="password" id="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                <button type="button" class="ver-clave" data-para="password" aria-label="Mostrar contraseña" data-sonido="suave"><i class="fa-solid fa-eye"></i></button>
+              </div>
+              <div class="fuerza" id="fuerza" data-nivel="0" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="fuerza-texto" id="fuerzaTexto" aria-live="polite"></span>
+            </div>
+            <div class="campo">
+              <label for="confirmar">Repite la contraseña</label>
+              <div class="control-icono"><i class="fa-solid fa-lock"></i><input class="control" type="password" id="confirmar" autocomplete="new-password"></div>
+            </div>
+            <label class="check"><input type="checkbox" id="terminos"> Acepto los términos y el aviso de privacidad</label>
+          </div>
+
+          <div class="botones-etapa">
+            <button type="button" class="btn btn-lg" id="btnAtras" aria-label="Paso anterior"><i class="fa-solid fa-arrow-left"></i></button>
+            <button type="submit" class="btn btn-principal btn-lg" id="btnSiguiente" data-sonido="ninguno">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/datos.js"></script>
+  <script src="js/registro.js"></script>
+</body>
+</html>

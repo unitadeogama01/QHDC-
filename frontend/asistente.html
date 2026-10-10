@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistente — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/asistente.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="asistente">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Asistente</h1>
+          <p>Pregúntale lo que quieras sobre tu cocina</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <div class="asistente-layout">
+          <!-- ===== Conversación ===== -->
+          <section class="tarjeta chat" aria-label="Conversación con el asistente">
+            <header class="chat-cab">
+              <span class="robot" aria-hidden="true"><i class="fa-solid fa-robot"></i></span>
+              <div>
+                <strong>Chef QHDC</strong>
+                <small><span class="punto-vivo"></span> Conoce todo lo que hay en tu cocina</small>
+              </div>
+            </header>
+
+            <div class="mensajes" id="mensajes" role="log" aria-live="polite"></div>
+
+            <div class="sugeridas chips" id="sugeridas">
+              <button class="chip" type="button" data-pregunta="¿Qué debo usar primero?"><i class="fa-solid fa-hourglass-half"></i> ¿Qué uso primero?</button>
+              <button class="chip" type="button" data-pregunta="¿Qué necesito comprar?"><i class="fa-solid fa-cart-shopping"></i> ¿Qué compro?</button>
+              <button class="chip" type="button" data-pregunta="¿Qué cocino hoy?"><i class="fa-solid fa-utensils"></i> ¿Qué cocino?</button>
+              <button class="chip" type="button" data-pregunta="¿Cuánto me dura el arroz?"><i class="fa-solid fa-chart-line"></i> ¿Cuánto me dura el arroz?</button>
+              <button class="chip" type="button" data-pregunta="¿Cómo está mi cocina?"><i class="fa-solid fa-heart-pulse"></i> ¿Cómo está mi cocina?</button>
+            </div>
+
+            <form class="escribir" id="formPregunta">
+              <input class="control" id="pregunta" placeholder="Escribe tu pregunta… ej. ¿cuánto me dura la leche?" autocomplete="off" aria-label="Tu pregunta">
+              <button class="btn btn-principal" type="submit" aria-label="Enviar" data-sonido="ninguno"><i class="fa-solid fa-paper-plane"></i></button>
+            </form>
+          </section>
+
+          <!-- ===== Predicción ===== -->
+          <aside class="columna-prediccion">
+            <section class="tarjeta">
+              <div class="titulo-seccion">
+                <h2><span class="ico-titulo"><i class="fa-solid fa-hourglass-half"></i></span> Te alcanza para</h2>
+              </div>
+              <ul class="alcanza" id="alcanza"></ul>
+            </section>
+
+            <section class="tarjeta">
+              <div class="titulo-seccion">
+                <h2 id="tituloGrafica"><span class="ico-titulo"><i class="fa-solid fa-chart-column"></i></span> Tu consumo</h2>
+              </div>
+              <select class="control" id="productoGrafica" aria-label="Producto de la gráfica"></select>
+              <div class="grafica" id="grafica" role="img"></div>
+              <div class="eje" id="eje"></div>
+              <p class="texto-suave texto-chico" id="resumenGrafica"></p>
+              <details class="datos">
+                <summary>Ver como tabla</summary>
+                <table class="tabla"><thead><tr><th>Día</th><th>Consumo</th></tr></thead><tbody id="tablaGrafica"></tbody></table>
+              </details>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/asistente.js"></script>
+</body>
+</html>

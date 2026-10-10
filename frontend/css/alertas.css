@@ -1,0 +1,77 @@
+/* ============================================================
+   QHDC! — AVISOS (alertas.html)
+   Notas pegadas en el refri con un imán.
+   ============================================================ */
+
+/* ---------- Semana ---------- */
+.semana { margin-bottom: 24px; }
+.dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.dia {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  min-height: 132px; padding: 10px 6px;
+  border: 2px dashed var(--borde); border-radius: 16px; text-align: center;
+}
+.dia .nombre { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-suave); }
+.dia .num { font-family: var(--letra-titulo); font-size: 1.5rem; line-height: 1; }
+.dia.hoy { border: 2px solid var(--tinta); background: var(--mostaza-claro); box-shadow: var(--sombra-dura-sm); }
+.dia .cosas { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.dia .cosas a .prod-icono { width: 30px; height: 30px; font-size: 0.8rem; border-radius: 9px; transition: transform 0.2s var(--rebote); }
+.dia .cosas a:hover .prod-icono { transform: scale(1.2) rotate(-8deg); }
+.dia .nada { font-size: 0.72rem; color: var(--texto-suave); font-weight: 700; }
+
+.barra-filtros { margin-bottom: 20px; }
+
+/* ---------- Tablero de notas ---------- */
+.tablero { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 26px 20px; padding-top: 12px; }
+.nota {
+  --giro: 0deg;
+  position: relative;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 26px 18px 16px;
+  border: 2px solid var(--tinta); border-radius: 6px 6px 18px 6px;
+  box-shadow: var(--sombra-dura);
+  transform: rotate(var(--giro));
+  transition: transform 0.3s var(--rebote);
+}
+.nota:hover { transform: rotate(0deg) translateY(-4px); }
+.nota.peligro { background: var(--tomate-claro); }
+.nota.aviso { background: var(--mostaza-claro); }
+.nota.info { background: var(--info-fondo); }
+/* Imán */
+.nota::before {
+  content: ""; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--tinta); background: var(--tomate);
+  box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.18);
+}
+.nota.aviso::before { background: var(--mostaza); }
+.nota.info::before { background: var(--petroleo); }
+
+.nota-cab { display: flex; align-items: center; gap: 10px; }
+.nota-cab .prod-icono { width: 38px; height: 38px; background: var(--superficie); }
+.nota h3 { font-family: var(--letra-titulo); font-size: 1.12rem; line-height: 1.2; }
+.nota p { font-size: 0.92rem; color: var(--texto); opacity: 0.85; }
+.nota-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+.nota .listo { position: absolute; top: 8px; right: 8px; }
+.nota .listo:hover { background: var(--superficie); color: var(--ok-texto); }
+
+/* Despegar la nota al marcarla como vista */
+.nota.despegando { animation: despegar 0.5s ease-in forwards; pointer-events: none; }
+@keyframes despegar { to { transform: rotate(16deg) translate(40px, -30px) scale(0.85); opacity: 0; } }
+
+/* ---------- Ya vistos ---------- */
+.vistos { margin-top: 30px; }
+.vistos summary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 800; color: var(--texto-suave); list-style: none; }
+.vistos summary::-webkit-details-marker { display: none; }
+.vistos summary i { transition: transform 0.2s; }
+.vistos[open] summary i { transform: rotate(90deg); }
+.lista-vistos { margin-top: 12px; display: grid; gap: 8px; }
+.lista-vistos li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 2px dashed var(--borde); border-radius: 14px; color: var(--texto-suave); }
+.lista-vistos li span { flex: 1; font-weight: 700; }
+
+@media (max-width: 760px) {
+  .dias { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 92px; overflow-x: auto; padding-bottom: 6px; }
+  .barra-filtros .btn { width: 100%; }
+  .barra-filtros .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .barra-filtros .chip { flex-shrink: 0; }
+}

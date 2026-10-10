@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dispositivos — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/sensores.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="sensores">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Dispositivos</h1>
+          <p>Básculas y sensores que cuidan tu cocina</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <section class="tarjeta franja-vivo">
+          <div class="fila">
+            <span class="en-vivo" id="indicador"><span class="punto-vivo"></span> <span>En vivo</span></span>
+            <span class="texto-suave" id="ultimaVez">Esperando datos…</span>
+          </div>
+          <div class="fila">
+            <button class="btn btn-sm" id="btnPausa" type="button" aria-pressed="false"><i class="fa-solid fa-pause"></i> Pausar</button>
+            <button class="btn btn-sm btn-principal" id="btnVincular" type="button"><i class="fa-solid fa-plus"></i> Vincular<span class="ocultar-chico"> dispositivo</span></button>
+          </div>
+        </section>
+
+        <div class="disp-layout">
+          <section class="dispositivos" id="dispositivos" aria-live="off"></section>
+
+          <aside class="tarjeta actividad">
+            <div class="titulo-seccion">
+              <h2><span class="ico-titulo"><i class="fa-solid fa-wave-square"></i></span> Actividad</h2>
+            </div>
+            <ol class="registro" id="registro" aria-live="polite" aria-relevant="additions"></ol>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Vincular dispositivo -->
+  <div class="modal" id="modalVincular" aria-hidden="true" role="dialog" aria-labelledby="tituloVincular">
+    <div class="modal-caja">
+      <div class="modal-cab">
+        <h2 id="tituloVincular"><i class="fa-solid fa-link"></i> Nuevo dispositivo</h2>
+        <button type="button" class="btn-icono con-borde" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-cuerpo">
+        <ol class="pasos-vincular">
+          <li><span class="prod-icono ico-mostaza"><i class="fa-solid fa-plug"></i></span><div><strong>Conéctalo</strong><small>Enchufa el ESP32 y colócalo en su lugar.</small></div></li>
+          <li><span class="prod-icono ico-petroleo"><i class="fa-solid fa-wifi"></i></span><div><strong>Únelo a tu WiFi</strong><small>Usa la misma red de tu casa.</small></div></li>
+          <li><span class="prod-icono ico-oliva"><i class="fa-solid fa-key"></i></span><div><strong>Escribe esta clave</strong><small>Así sabremos que es tuyo.</small></div></li>
+        </ol>
+        <div class="clave">
+          <code id="claveNueva"></code>
+          <button class="btn btn-sm" id="btnCopiar" type="button" data-sonido="ninguno"><i class="fa-solid fa-copy"></i> Copiar</button>
+        </div>
+      </div>
+      <div class="modal-pie">
+        <button type="button" class="btn btn-principal" data-cerrar>Listo</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/sensores.js"></script>
+</body>
+</html>

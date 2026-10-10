@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi alacena — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/inventario.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="inventario">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Mi alacena</h1>
+          <p id="resumen">Todo lo que hay en tu cocina</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <!-- Herramientas -->
+        <section class="herramientas tarjeta">
+          <div class="control-icono buscador">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input class="control" type="search" id="buscar" placeholder="Buscar en la alacena…" aria-label="Buscar alimento">
+          </div>
+          <div class="segmentos" id="filtroUbicacion" role="group" aria-label="Lugar">
+            <button type="button" aria-pressed="true" data-ubicacion="">Todo</button>
+            <button type="button" aria-pressed="false" data-ubicacion="Refrigerador"><i class="fa-solid fa-snowflake"></i><span>Refri</span></button>
+            <button type="button" aria-pressed="false" data-ubicacion="Despensa"><i class="fa-solid fa-box-archive"></i><span>Despensa</span></button>
+            <button type="button" aria-pressed="false" data-ubicacion="Congelador"><i class="fa-solid fa-icicles"></i><span>Congelador</span></button>
+          </div>
+          <select class="control orden" id="orden" aria-label="Ordenar">
+            <option value="caducidad">Caduca antes</option>
+            <option value="cantidad">Queda menos</option>
+            <option value="nombre">Nombre A-Z</option>
+          </select>
+          <div class="segmentos" id="vista" role="group" aria-label="Vista">
+            <button type="button" aria-pressed="true" data-vista="frascos" aria-label="Vista de frascos"><i class="fa-solid fa-jar"></i></button>
+            <button type="button" aria-pressed="false" data-vista="lista" aria-label="Vista de lista"><i class="fa-solid fa-list"></i></button>
+          </div>
+          <button class="btn btn-principal" id="btnAgregar" type="button"><i class="fa-solid fa-plus"></i> Agregar</button>
+        </section>
+
+        <div id="alacena"></div>
+
+        <div class="vacio oculto" id="sinResultados">
+          <div class="ilustra"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <strong>No lo encontramos</strong>
+          <p>¿Quieres agregarlo a tu alacena?</p>
+          <button class="btn btn-principal" id="btnAgregarBuscado" type="button" style="margin-top:12px"><i class="fa-solid fa-plus"></i> Agregar</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ========== Agregar / editar alimento ========== -->
+  <div class="modal" id="modalProducto" aria-hidden="true" role="dialog" aria-labelledby="tituloModal">
+    <form class="modal-caja" id="formProducto" novalidate>
+      <div class="modal-cab">
+        <h2 id="tituloModal">Agregar alimento</h2>
+        <button type="button" class="btn-icono con-borde" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-cuerpo">
+        <div class="sugerencias" id="sugerencias" aria-label="Alimentos frecuentes"></div>
+
+        <div class="form-cabeza">
+          <div class="vista-previa" id="vistaPrevia"></div>
+          <div class="campo" style="flex:1">
+            <label for="fNombre">¿Qué alimento es?</label>
+            <input class="control" id="fNombre" name="nombre" placeholder="Ej. Avena" required autocomplete="off">
+          </div>
+        </div>
+        <input type="hidden" name="id">
+
+        <div class="campos-2">
+          <div class="campo">
+            <label for="fUbicacion">¿Dónde lo guardas?</label>
+            <select class="control" id="fUbicacion" name="ubicacion"></select>
+          </div>
+          <div class="campo">
+            <label for="fCategoria">Tipo</label>
+            <select class="control" id="fCategoria" name="categoria"></select>
+          </div>
+        </div>
+        <div class="campos-3">
+          <div class="campo">
+            <label for="fCantidad">Cantidad</label>
+            <input class="control" id="fCantidad" name="cantidad" type="number" min="0" step="any" required inputmode="decimal">
+          </div>
+          <div class="campo">
+            <label for="fUnidad">Unidad</label>
+            <select class="control" id="fUnidad" name="unidad"></select>
+          </div>
+          <div class="campo">
+            <label for="fCapacidad">Lleno es</label>
+            <input class="control" id="fCapacidad" name="capacidad" type="number" min="0" step="any" inputmode="decimal">
+          </div>
+        </div>
+        <div class="campos-2">
+          <div class="campo">
+            <label for="fCaducidad">Caduca el</label>
+            <input class="control" id="fCaducidad" name="caducidad" type="date" required>
+          </div>
+          <div class="campo">
+            <label for="fAviso">Avísame</label>
+            <select class="control" id="fAviso" name="aviso">
+              <option value="1">1 día antes</option>
+              <option value="2">2 días antes</option>
+              <option value="3" selected>3 días antes</option>
+              <option value="7">1 semana antes</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo">
+          <span class="etq" id="etqIcono">Icono</span>
+          <input type="hidden" name="icono" id="fIcono">
+          <input type="hidden" name="color" id="fColor">
+          <div class="selector-iconos" id="selectorIconos" role="radiogroup" aria-labelledby="etqIcono"></div>
+        </div>
+        <div class="campo">
+          <label for="fPrecio">Precio aproximado</label>
+          <div class="control-icono"><i class="fa-solid fa-dollar-sign"></i><input class="control" id="fPrecio" name="precio" type="number" min="0" inputmode="numeric"></div>
+        </div>
+        <p class="badge badge-peligro oculto" id="errorProducto" role="alert"></p>
+      </div>
+      <div class="modal-pie">
+        <button type="button" class="btn btn-fantasma" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-principal" data-sonido="ninguno"><i class="fa-solid fa-check"></i> Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/inventario.js"></script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="dashboard">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1 id="saludo">¡Hola!</h1>
+          <p id="fechaHoy"></p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <!-- ===== Portada: ruleta + frescura ===== -->
+        <section class="portada" data-escalonar>
+          <article class="tarjeta ruleta-tarjeta" id="ruletaTarjeta">
+            <div class="ruleta-texto">
+              <span class="etiqueta"><i class="fa-solid fa-utensils"></i> Para hoy</span>
+              <h2>¿Qué hay de comer?</h2>
+              <p class="texto-suave" id="ruletaPista">Te sugerimos un platillo con lo que ya tienes, empezando por lo que está por caducar.</p>
+              <div class="fila">
+                <button class="btn btn-principal btn-lg" id="btnRuleta" type="button" data-sonido="ninguno">
+                  <i class="fa-solid fa-dice"></i> Sorpréndeme
+                </button>
+                <a class="btn btn-fantasma oculto" id="verPlatillo" href="recetas.html"><i class="fa-solid fa-book-open"></i> Ver receta</a>
+              </div>
+            </div>
+            <div class="ruleta-ventana" aria-live="polite">
+              <div class="ruleta-plato" id="ruletaPlato">
+                <span class="ruleta-icono"><i class="fa-solid fa-bowl-food"></i></span>
+                <strong id="ruletaNombre">?</strong>
+                <small id="ruletaDetalle">Presiona el botón</small>
+              </div>
+            </div>
+          </article>
+
+          <article class="tarjeta frescura" id="frescuraTarjeta">
+            <div class="anillo" id="anillo" style="--valor:0">
+              <div class="anillo-centro"><strong id="frescuraValor">0</strong><small>Frescura</small></div>
+            </div>
+            <div class="frescura-texto">
+              <h2 id="frescuraTitulo">Tu cocina</h2>
+              <p class="texto-suave" id="frescuraFrase"></p>
+              <ul class="frescura-detalle" id="frescuraDetalle"></ul>
+            </div>
+          </article>
+        </section>
+
+        <!-- ===== Accesos con números ===== -->
+        <section class="atajos" aria-label="Resumen" data-escalonar>
+          <a href="inventario.html" class="atajo">
+            <span class="prod-icono ico-cafe"><i class="fa-solid fa-jar"></i></span>
+            <span><strong id="nAlimentos">0</strong><small>alimentos</small></span>
+          </a>
+          <a href="alertas.html" class="atajo">
+            <span class="prod-icono ico-tomate"><i class="fa-solid fa-hourglass-half"></i></span>
+            <span><strong id="nCaducar">0</strong><small>por caducar</small></span>
+          </a>
+          <a href="lista-compras.html" class="atajo">
+            <span class="prod-icono ico-mostaza"><i class="fa-solid fa-cart-shopping"></i></span>
+            <span><strong id="nComprar">0</strong><small>por comprar</small></span>
+          </a>
+          <a href="sensores.html" class="atajo">
+            <span class="prod-icono ico-petroleo"><i class="fa-solid fa-tower-broadcast"></i></span>
+            <span><strong id="nSensores">0</strong><small>dispositivos activos</small></span>
+          </a>
+        </section>
+
+        <!-- ===== Úsalo pronto ===== -->
+        <section class="mb" id="seccionPronto">
+          <div class="titulo-seccion">
+            <h2><span class="ico-titulo"><i class="fa-solid fa-hourglass-half"></i></span> Úsalo pronto</h2>
+            <a href="inventario.html">Toda la alacena <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="estante" id="estante" data-escalonar></div>
+        </section>
+
+        <!-- ===== Asistente + lista ===== -->
+        <div class="grid-dash">
+          <section class="tarjeta" id="tarjetaAsistente">
+            <div class="titulo-seccion">
+              <h2><span class="ico-titulo"><i class="fa-solid fa-robot"></i></span> Tu asistente dice</h2>
+              <a href="asistente.html">Conversar <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="burbuja-ia">
+              <span class="avatar-ia"><i class="fa-solid fa-robot"></i></span>
+              <p id="textoIA"></p>
+            </div>
+            <div class="chips" id="preguntasRapidas">
+              <a class="chip" href="asistente.html?p=caduca"><i class="fa-solid fa-hourglass-half"></i> ¿Qué caduca?</a>
+              <a class="chip" href="asistente.html?p=comprar"><i class="fa-solid fa-cart-shopping"></i> ¿Qué compro?</a>
+              <a class="chip" href="asistente.html?p=cocinar"><i class="fa-solid fa-utensils"></i> ¿Qué cocino?</a>
+            </div>
+          </section>
+
+          <section class="tarjeta ticket-mini">
+            <div class="titulo-seccion">
+              <h2><span class="ico-titulo"><i class="fa-solid fa-receipt"></i></span> Para el súper</h2>
+              <a href="lista-compras.html">Abrir <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <ul class="lista-items" id="listaCompras"></ul>
+            <div class="ticket-total"><span>Total aproximado</span><strong id="totalCompras">$0</strong></div>
+          </section>
+        </div>
+
+        <!-- ===== Dispositivos ===== -->
+        <section class="tarjeta">
+          <div class="titulo-seccion">
+            <h2><span class="ico-titulo"><i class="fa-solid fa-microchip"></i></span> Dispositivos</h2>
+            <a href="sensores.html">Ver detalle <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="dispositivos-mini" id="dispositivos"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

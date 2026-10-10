@@ -1,0 +1,140 @@
+/* ============================================================
+   QHDC! — INICIO (dashboard.html)
+   ============================================================ */
+
+/* ---------- Portada ---------- */
+.portada { display: grid; grid-template-columns: 1.55fr 1fr; gap: 22px; margin-bottom: 22px; }
+
+/* Ruleta "¿Qué hay de comer?" */
+.ruleta-tarjeta {
+  display: grid; grid-template-columns: 1fr 210px; gap: 22px; align-items: center;
+  background:
+    radial-gradient(circle at 92% 12%, var(--mostaza-claro) 0 70px, transparent 71px),
+    var(--superficie);
+  overflow: hidden;
+}
+.ruleta-texto h2 { font-size: clamp(1.8rem, 3.2vw, 2.5rem); margin: 12px 0 8px; }
+.ruleta-texto p { margin-bottom: 18px; max-width: 420px; }
+.ruleta-ventana {
+  position: relative;
+  height: 210px;
+  border: 2px solid var(--tinta); border-radius: 22px;
+  background: repeating-linear-gradient(45deg, var(--tomate-claro) 0 14px, var(--superficie) 14px 28px);
+  display: grid; place-items: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 6px var(--superficie);
+}
+.ruleta-plato {
+  width: 84%;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+  padding: 16px 10px;
+  background: var(--superficie);
+  border: 2px solid var(--tinta); border-radius: 18px;
+  box-shadow: var(--sombra-dura-sm);
+}
+.ruleta-plato strong { font-family: var(--letra-titulo); font-size: 1.05rem; line-height: 1.2; }
+.ruleta-plato small { color: var(--texto-suave); font-weight: 700; font-size: 0.8rem; }
+.ruleta-icono {
+  width: 62px; height: 62px; display: grid; place-items: center;
+  border: 2px solid var(--tinta); border-radius: 50%;
+  background: var(--mostaza); color: var(--cafe); font-size: 1.6rem;
+}
+.ruleta-plato.girando { animation: girarPlato 0.09s linear; }
+.ruleta-plato.listo { animation: pop 0.5s var(--rebote); }
+.ruleta-plato.listo .ruleta-icono { background: var(--tomate); }
+@keyframes girarPlato { from { transform: translateY(-30%); opacity: 0.3; } }
+
+/* Anillo de frescura */
+.frescura { display: flex; align-items: center; gap: 22px; }
+.frescura h2 { font-size: 1.35rem; margin-bottom: 4px; }
+.frescura-texto p { font-size: 0.95rem; margin-bottom: 12px; }
+.frescura-detalle { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Atajos ---------- */
+.atajos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 28px; }
+.atajo {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  background: var(--superficie);
+  border: 2px solid var(--tinta); border-radius: 18px;
+  box-shadow: var(--sombra-dura-sm);
+  transition: transform 0.2s var(--rebote), box-shadow 0.2s;
+}
+.atajo:hover { transform: translate(-2px, -3px) rotate(-1deg); box-shadow: var(--sombra-dura); }
+.atajo strong { display: block; font-family: var(--letra-titulo); font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.atajo small { color: var(--texto-suave); font-weight: 800; }
+
+/* ---------- Estante de frascos ---------- */
+.estante {
+  display: flex; gap: 16px;
+  overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: 6px 4px 22px;
+  border-bottom: 10px solid var(--superficie-2);
+  border-radius: 0 0 6px 6px;
+  scrollbar-width: thin;
+}
+.estante-item {
+  scroll-snap-align: start;
+  flex: 0 0 150px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  padding: 16px 10px 14px;
+  background: var(--superficie);
+  border: 2px solid var(--tinta); border-radius: 20px;
+  box-shadow: var(--sombra-dura-sm);
+  transition: transform 0.25s var(--rebote);
+}
+.estante-item:hover { transform: translateY(-6px) rotate(-1.5deg); }
+.estante-item strong { line-height: 1.2; font-size: 0.95rem; }
+.estante-item small { color: var(--texto-suave); font-weight: 700; font-size: 0.8rem; }
+
+/* ---------- Asistente + lista ---------- */
+.grid-dash { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; margin-bottom: 22px; }
+.burbuja-ia { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+.avatar-ia {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: 2px solid var(--tinta); border-radius: 14px;
+  background: var(--oliva); color: #fff; font-size: 1.1rem;
+}
+.burbuja-ia p {
+  position: relative;
+  padding: 14px 16px;
+  background: var(--oliva-claro);
+  border: 2px solid var(--tinta); border-radius: 4px 18px 18px 18px;
+  font-size: 1.02rem; font-weight: 600;
+}
+
+.ticket-mini { background: var(--superficie); }
+.ticket-total {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 6px; padding-top: 12px; border-top: 2px solid var(--tinta);
+  font-weight: 800;
+}
+.ticket-total strong { font-family: var(--letra-titulo); font-size: 1.4rem; }
+
+/* ---------- Dispositivos ---------- */
+.dispositivos-mini { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.disp {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; border: 2px dashed var(--borde); border-radius: 16px;
+}
+.disp strong { display: block; font-size: 0.9rem; line-height: 1.2; }
+.disp small { color: var(--texto-suave); font-weight: 700; font-size: 0.78rem; }
+.disp .estado { display: inline-flex; align-items: center; gap: 5px; }
+.disp.apagado { opacity: 0.7; }
+
+@media (max-width: 1200px) {
+  .portada, .grid-dash { grid-template-columns: 1fr; }
+  .dispositivos-mini { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .ruleta-tarjeta { grid-template-columns: 1fr; }
+  .ruleta-ventana { height: 180px; }
+  .atajos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .atajo { padding: 12px; gap: 10px; }
+  .atajo strong { font-size: 1.4rem; }
+  .frescura { flex-direction: column; text-align: center; }
+  .frescura .anillo { --t: 150px; }
+  .frescura-detalle { justify-content: center; }
+  .dispositivos-mini { grid-template-columns: 1fr; }
+}

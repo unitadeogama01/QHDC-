@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escanear — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/escanear.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="escanear">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Escanear</h1>
+          <p>Toma una foto y reconocemos tus alimentos</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <ol class="pasos-escaneo" id="pasos" aria-label="Progreso">
+          <li class="activo"><span>1</span> Foto</li>
+          <li><span>2</span> Reconocer</li>
+          <li><span>3</span> Confirmar</li>
+        </ol>
+
+        <div class="escaneo-layout">
+          <!-- ===== Cámara ===== -->
+          <section class="camara">
+            <div class="visor" id="visor">
+              <div class="visor-inicio" id="visorInicio">
+                <span class="lente"><i class="fa-solid fa-camera"></i></span>
+                <strong>Apunta a tu refri o a tus compras</strong>
+                <small>Con buena luz y los productos a la vista</small>
+              </div>
+              <video id="video" class="oculto" autoplay playsinline muted></video>
+              <img id="foto" class="oculto" alt="Foto para reconocer">
+              <span class="esquina e1"></span><span class="esquina e2"></span><span class="esquina e3"></span><span class="esquina e4"></span>
+              <div class="cajas" id="cajas"></div>
+              <div class="laser" aria-hidden="true"></div>
+              <div class="flash" id="flash" aria-hidden="true"></div>
+            </div>
+
+            <div class="controles" id="ctrlInicio">
+              <label class="btn btn-lg" for="archivo"><i class="fa-solid fa-image"></i> Subir foto</label>
+              <input type="file" id="archivo" accept="image/*" capture="environment" class="sr-only">
+              <button class="btn btn-lg btn-principal" id="btnCamara" type="button"><i class="fa-solid fa-camera"></i> Abrir cámara</button>
+            </div>
+            <div class="controles oculto" id="ctrlCamara">
+              <button class="btn btn-lg" id="btnCancelar" type="button"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+              <button class="obturador" id="btnCapturar" type="button" aria-label="Tomar foto" data-sonido="ninguno"></button>
+              <span></span>
+            </div>
+            <div class="controles oculto" id="ctrlFoto">
+              <button class="btn btn-lg" id="btnOtra" type="button"><i class="fa-solid fa-rotate-left"></i> Otra foto</button>
+              <button class="btn btn-lg btn-principal" id="btnReconocer" type="button" data-sonido="ninguno"><i class="fa-solid fa-wand-magic-sparkles"></i> Reconocer alimentos</button>
+            </div>
+
+            <div class="recientes">
+              <h3>Fotos recientes</h3>
+              <div class="tiras" id="recientes"></div>
+            </div>
+          </section>
+
+          <!-- ===== Resultados ===== -->
+          <section class="tarjeta resultados" aria-live="polite">
+            <div class="titulo-seccion">
+              <h2><span class="ico-titulo"><i class="fa-solid fa-list-check"></i></span> Encontramos</h2>
+              <span class="badge" id="numEncontrados">0</span>
+            </div>
+            <div class="vacio" id="sinResultados">
+              <div class="ilustra" style="background:var(--info-fondo);color:var(--info-texto)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+              <strong>Esperando una foto</strong>
+              <p>Aquí aparecerán los alimentos que reconozcamos.</p>
+            </div>
+            <ul class="detectados" id="detectados"></ul>
+            <button class="btn btn-oliva btn-lg btn-bloque oculto" id="btnAgregar" type="button" data-sonido="ninguno"></button>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <canvas id="lienzo" class="oculto"></canvas>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/escanear.js"></script>
+</body>
+</html>

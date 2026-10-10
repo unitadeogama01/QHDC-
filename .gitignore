@@ -1,0 +1,16 @@
+# Dependencias (se reinstalan con npm install)
+node_modules/
+
+# Base de datos local, fotos subidas y registros (cuando exista el backend)
+backend/data/
+backend/uploads/
+*.log
+
+# Configuración local
+.env
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini

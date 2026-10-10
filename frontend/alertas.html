@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avisos — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/alertas.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="alertas">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Avisos</h1>
+          <p id="resumen">Lo que necesita tu atención</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <!-- Semana -->
+        <section class="semana tarjeta" aria-labelledby="tituloSemana">
+          <div class="titulo-seccion">
+            <h2 id="tituloSemana"><span class="ico-titulo"><i class="fa-solid fa-calendar-week"></i></span> Esta semana caduca</h2>
+          </div>
+          <ol class="dias" id="dias"></ol>
+        </section>
+
+        <!-- Filtros -->
+        <div class="fila entre barra-filtros">
+          <div class="chips" id="filtros" role="group" aria-label="Tipo de aviso">
+            <button class="chip" type="button" aria-pressed="true" data-tipo="">Todos <span class="num" data-num=""></span></button>
+            <button class="chip" type="button" aria-pressed="false" data-tipo="caducidad"><i class="fa-solid fa-hourglass-half"></i> Caducidad <span class="num" data-num="caducidad"></span></button>
+            <button class="chip" type="button" aria-pressed="false" data-tipo="stock"><i class="fa-solid fa-arrow-trend-down"></i> Se acaba <span class="num" data-num="stock"></span></button>
+            <button class="chip" type="button" aria-pressed="false" data-tipo="sensor"><i class="fa-solid fa-microchip"></i> Dispositivos <span class="num" data-num="sensor"></span></button>
+          </div>
+          <button class="btn btn-sm" id="btnTodas" type="button" data-sonido="ninguno"><i class="fa-solid fa-check-double"></i> Marcar todo como visto</button>
+        </div>
+
+        <!-- Notas -->
+        <section class="tablero" id="tablero" aria-live="polite"></section>
+        <div class="vacio oculto" id="sinAvisos">
+          <div class="ilustra"><i class="fa-solid fa-champagne-glasses"></i></div>
+          <strong>¡Nada pendiente!</strong>
+          <p>Tu cocina está en orden. Te avisaremos si algo cambia.</p>
+        </div>
+
+        <details class="vistos" id="vistos">
+          <summary><i class="fa-solid fa-chevron-right"></i> Ya vistos <span class="badge" id="numVistos">0</span></summary>
+          <ul class="lista-vistos" id="listaVistos"></ul>
+        </details>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/alertas.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+/* ============================================================
+   QHDC! — RECETAS (recetas.html)
+   ============================================================ */
+
+.barra-recetas { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+.buscador { width: 260px; }
+
+/* ---------- Tarjetas ---------- */
+.recetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 24px; }
+.receta {
+  position: relative;
+  display: flex; flex-direction: column;
+  text-align: left;
+  padding: 0;
+  background: var(--superficie);
+  border: 2px solid var(--tinta); border-radius: 22px;
+  box-shadow: var(--sombra-dura);
+  overflow: hidden;
+  transition: transform 0.3s var(--rebote), box-shadow 0.2s;
+}
+.receta:hover, .receta:focus-visible { transform: translate(-3px, -4px) rotate(-0.8deg); box-shadow: 7px 8px 0 var(--tinta); }
+.receta.foco { transform: translate(-3px, -6px) scale(1.03); box-shadow: 0 0 0 5px var(--mostaza), 7px 8px 0 var(--tinta); }
+.receta-arte {
+  position: relative; height: 140px;
+  display: grid; place-items: center;
+  border-bottom: 2px solid var(--tinta);
+  background-image: radial-gradient(rgba(43, 29, 20, 0.12) 1.5px, transparent 1.5px);
+  background-size: 14px 14px;
+}
+.plato {
+  width: 96px; height: 96px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 2px solid var(--tinta); background: var(--superficie);
+  box-shadow: inset 0 0 0 9px var(--superficie-2), 3px 3px 0 var(--tinta);
+  font-size: 2.2rem; color: var(--cafe);
+  transition: transform 0.5s var(--rebote);
+}
+[data-tema="oscuro"] .plato { color: var(--texto); }
+.receta:hover .plato { transform: rotate(-14deg) scale(1.06); }
+.receta-arte .badge { position: absolute; top: 12px; left: 12px; border: 2px solid var(--tinta); }
+.receta-cuerpo { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.receta-cuerpo h3 { font-size: 1.22rem; line-height: 1.2; }
+.meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--texto-suave); font-weight: 800; }
+.stickers { display: flex; flex-wrap: wrap; gap: 6px; }
+.en-casa { margin-top: auto; display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 0.85rem; }
+.en-casa .puntos { display: flex; gap: 4px; }
+.en-casa .puntos span { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--tinta); background: var(--superficie); }
+.en-casa .puntos span.si { background: var(--oliva); }
+
+/* ---------- Detalle ---------- */
+.modal-receta { max-width: 620px; }
+.portada {
+  position: relative; height: 170px;
+  display: grid; place-items: center;
+  border-bottom: 2px solid var(--tinta);
+  background-image: radial-gradient(rgba(43, 29, 20, 0.12) 1.5px, transparent 1.5px);
+  background-size: 14px 14px;
+}
+.portada .plato { width: 120px; height: 120px; font-size: 2.8rem; animation: pop 0.5s var(--rebote); }
+.portada .btn-icono { position: absolute; top: 12px; right: 12px; }
+#tituloReceta { font-size: 1.7rem; margin-bottom: 8px; }
+.subtitulo { font-family: var(--letra-texto); font-size: 0.95rem; font-weight: 900; margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+.ingredientes li { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 2px dashed var(--borde); }
+.ingredientes li > span:first-child { flex: 1; font-weight: 800; }
+.ingredientes .cant { color: var(--texto-suave); font-weight: 700; }
+.pasos { counter-reset: paso; }
+.pasos li { counter-increment: paso; position: relative; padding: 0 0 14px 46px; }
+.pasos li::before {
+  content: counter(paso); position: absolute; left: 0; top: -3px;
+  width: 32px; height: 32px; display: grid; place-items: center;
+  border: 2px solid var(--tinta); border-radius: 50%;
+  background: var(--mostaza); color: var(--cafe); font-weight: 900;
+}
+
+/* ---------- Modo cocina ---------- */
+.modo-cocina {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; flex-direction: column;
+  padding: 22px clamp(16px, 5vw, 70px) 26px;
+  background: var(--fondo);
+  background-image: radial-gradient(var(--borde) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  animation: entrar 0.4s var(--rebote);
+}
+.mc-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.mc-cab small { display: block; color: var(--texto-suave); font-weight: 800; }
+.mc-cab strong { font-family: var(--letra-titulo); font-size: 1.5rem; }
+.mc-progreso { display: flex; gap: 6px; margin: 18px 0; }
+.mc-progreso span { flex: 1; height: 8px; border-radius: 999px; background: var(--superficie-2); border: 1.5px solid var(--borde); transition: background 0.3s; }
+.mc-progreso span.hecho { background: var(--oliva); border-color: var(--tinta); }
+.mc-progreso span.actual { background: var(--mostaza); border-color: var(--tinta); }
+.mc-paso {
+  flex: 1; display: grid; place-items: center; text-align: center;
+  font-family: var(--letra-titulo); font-weight: 600;
+  font-size: clamp(1.6rem, 4.5vw, 3rem); line-height: 1.25;
+  max-width: 900px; margin: 0 auto;
+}
+.mc-paso.cambia { animation: entrar 0.45s var(--rebote); }
+.mc-timer { display: flex; justify-content: center; margin-bottom: 18px; }
+.mc-timer .btn.corriendo { background: var(--tomate); animation: latido 1s ease-in-out infinite; }
+.mc-pie { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; max-width: 700px; width: 100%; margin: 0 auto; }
+
+@media (max-width: 700px) {
+  .barra-recetas .fila { width: 100%; }
+  .buscador { flex: 1 1 100%; width: auto; }
+  #btnSorpresa { flex: 1 1 100%; }
+  .barra-recetas .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; width: 100%; }
+  .barra-recetas .chip { flex-shrink: 0; }
+}

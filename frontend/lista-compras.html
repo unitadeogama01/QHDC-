@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista del súper — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/lista-compras.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="lista-compras">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Lista del súper</h1>
+          <p>Se arma sola con lo que se te está acabando</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <div class="compras-layout">
+          <!-- ===== Ticket ===== -->
+          <section class="ticket-zona">
+            <article class="ticket" id="ticket">
+              <header class="ticket-cab">
+                <img src="img/LOGO.png" alt="" width="54" height="54">
+                <div>
+                  <strong>Lista del súper</strong>
+                  <small id="ticketFecha"></small>
+                </div>
+              </header>
+
+              <form class="anotar" id="formAnotar">
+                <label class="sr-only" for="nuevo">Anotar algo más</label>
+                <input class="control" id="nuevo" placeholder="Anotar algo más… ej. servilletas" autocomplete="off">
+                <button class="btn btn-mostaza" type="submit" aria-label="Anotar" data-sonido="ninguno"><i class="fa-solid fa-plus"></i></button>
+              </form>
+
+              <div id="grupos"></div>
+
+              <footer class="ticket-pie">
+                <div class="ticket-fila"><span>Artículos</span><span id="numArticulos">0</span></div>
+                <div class="ticket-fila"><span>Ya en el carrito</span><span id="enCarrito">$0</span></div>
+                <div class="ticket-total"><span>TOTAL APROX.</span><strong id="total">$0</strong></div>
+                <div class="codigo" aria-hidden="true"></div>
+                <p class="gracias">¡Gracias por no desperdiciar!</p>
+              </footer>
+            </article>
+
+            <div class="ticket-botones">
+              <button class="btn btn-oliva btn-lg" id="btnTerminar" type="button" data-sonido="ninguno"><i class="fa-solid fa-bag-shopping"></i> Terminé de comprar</button>
+              <button class="btn btn-lg" id="btnImprimir" type="button"><i class="fa-solid fa-print"></i> Imprimir</button>
+            </div>
+          </section>
+
+          <!-- ===== Lateral ===== -->
+          <aside class="lateral">
+            <section class="tarjeta carrito">
+              <div class="anillo" id="anilloCarrito" style="--t:110px; --valor:0; --color:var(--oliva)">
+                <div class="anillo-centro"><strong id="pctCarrito">0%</strong><small>en carrito</small></div>
+              </div>
+              <div>
+                <h2>Tu carrito</h2>
+                <p class="texto-suave" id="textoCarrito">Marca lo que vayas tomando.</p>
+              </div>
+            </section>
+
+            <section class="tarjeta">
+              <div class="titulo-seccion">
+                <h2><span class="ico-titulo"><i class="fa-solid fa-piggy-bank"></i></span> No lo compres</h2>
+              </div>
+              <p class="texto-suave texto-chico" style="margin-bottom:12px">Ya tienes suficiente de esto en casa:</p>
+              <div class="ya-tienes" id="yaTienes"></div>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/lista-compras.js"></script>
+</body>
+</html>

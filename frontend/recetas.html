@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recetas — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/recetas.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="recetas">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Recetas</h1>
+          <p>Ideas con lo que ya tienes en casa</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <section class="barra-recetas">
+          <div class="chips" id="filtros" role="group" aria-label="Filtrar recetas">
+            <button class="chip" type="button" aria-pressed="true" data-filtro="todas">Todas</button>
+            <button class="chip" type="button" aria-pressed="false" data-filtro="urgentes"><i class="fa-solid fa-hourglass-half"></i> Salvan comida</button>
+            <button class="chip" type="button" aria-pressed="false" data-filtro="completas"><i class="fa-solid fa-circle-check"></i> Tengo todo</button>
+            <button class="chip" type="button" aria-pressed="false" data-filtro="rapidas"><i class="fa-solid fa-bolt"></i> En 20 min</button>
+          </div>
+          <div class="fila">
+            <div class="control-icono buscador">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input class="control" type="search" id="buscar" placeholder="Receta o ingrediente…" aria-label="Buscar receta o ingrediente">
+            </div>
+            <button class="btn btn-principal" id="btnSorpresa" type="button" data-sonido="ninguno"><i class="fa-solid fa-dice"></i> Sorpréndeme</button>
+          </div>
+        </section>
+
+        <section class="recetas" id="recetas"></section>
+        <div class="vacio oculto" id="sinRecetas">
+          <div class="ilustra"><i class="fa-solid fa-utensils"></i></div>
+          <strong>Ninguna receta coincide</strong>
+          <p>Prueba con otro ingrediente o quita el filtro.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ========== Detalle ========== -->
+  <div class="modal" id="modalReceta" aria-hidden="true" role="dialog" aria-labelledby="tituloReceta">
+    <div class="modal-caja modal-receta">
+      <div class="portada" id="portada"></div>
+      <div class="modal-cuerpo">
+        <h2 id="tituloReceta"></h2>
+        <div class="meta" id="metaReceta"></div>
+        <h3 class="subtitulo"><i class="fa-solid fa-basket-shopping"></i> Ingredientes</h3>
+        <ul class="ingredientes" id="ingredientes"></ul>
+        <h3 class="subtitulo"><i class="fa-solid fa-list-ol"></i> Pasos</h3>
+        <ol class="pasos" id="pasos"></ol>
+      </div>
+      <div class="modal-pie">
+        <button class="btn" id="btnFaltantes" type="button" data-sonido="ninguno"><i class="fa-solid fa-cart-plus"></i> Anotar lo que falta</button>
+        <button class="btn btn-principal" id="btnCocinar" type="button"><i class="fa-solid fa-fire-burner"></i> Empezar a cocinar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Modo cocina (paso a paso) ========== -->
+  <div class="modo-cocina oculto" id="modoCocina" role="dialog" aria-modal="true" aria-labelledby="mcTitulo">
+    <header class="mc-cab">
+      <div>
+        <small id="mcReceta"></small>
+        <strong id="mcTitulo">Paso 1</strong>
+      </div>
+      <button class="btn-icono con-borde" id="mcCerrar" type="button" aria-label="Salir del modo cocina"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+    <div class="mc-progreso" id="mcProgreso"></div>
+    <div class="mc-paso" id="mcPaso" aria-live="polite"></div>
+    <div class="mc-timer oculto" id="mcTimer">
+      <button class="btn btn-mostaza" id="mcTimerBtn" type="button" data-sonido="ninguno"><i class="fa-solid fa-stopwatch"></i> <span>Iniciar temporizador</span></button>
+    </div>
+    <footer class="mc-pie">
+      <button class="btn btn-lg" id="mcAtras" type="button"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
+      <button class="btn btn-lg btn-principal" id="mcSiguiente" type="button">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+    </footer>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/recetas.js"></script>
+</body>
+</html>
