@@ -298,7 +298,7 @@ const UI = (() => {
         <label class="opcion" role="menuitemcheckbox"><i class="fa-solid fa-volume-high"></i> Sonidos
           <span class="interruptor"><input type="checkbox" data-pref="sonido"><span class="riel"></span></span></label>
         <button class="opcion" role="menuitem" id="btnRecorrido" type="button"><i class="fa-solid fa-route"></i> Recorrido de esta pantalla</button>
-        <button class="opcion" role="menuitem" id="btnRestablecer" type="button"><i class="fa-solid fa-rotate-left"></i> Restablecer datos</button>
+        ${sesion.rol === "Administrador" ? '<button class="opcion" role="menuitem" id="btnRestablecer" type="button"><i class="fa-solid fa-rotate-left"></i> Cocina de ejemplo</button>' : ""}
         <button class="opcion peligro" role="menuitem" id="btnSalir" type="button" data-sonido="cerrar"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
       </div>`);
     $("#btnAvatar").setAttribute("aria-expanded", "true");
@@ -308,10 +308,11 @@ const UI = (() => {
     menu.addEventListener("click", (ev) => ev.stopPropagation());
     $('[data-pref="tema"]', menu).addEventListener("change", () => Tema.alternar());
     $('[data-pref="sonido"]', menu).addEventListener("change", () => Sonido.alternar());
-    $("#btnSalir").addEventListener("click", () => { QHDC.cerrarSesion(); location.href = "login.html"; });
+    $("#btnSalir").addEventListener("click", async () => { await QHDC.cerrarSesion(); location.href = "login.html"; });
     $("#btnRecorrido").addEventListener("click", () => { cerrarMenuUsuario(); iniciarRecorrido(); });
-    $("#btnRestablecer").addEventListener("click", () => {
-      if (confirm("¿Restablecer la cocina a su estado inicial? Se perderán los cambios.")) { QHDC.reiniciar(); location.reload(); }
+    if ($("#btnRestablecer")) $("#btnRestablecer").addEventListener("click", () => {
+      if (!confirm("¿Cargar la cocina de ejemplo? Se borrará lo que hay ahora en tu alacena.")) return;
+      QHDC.reiniciar().then(() => location.reload(), (e) => { Sonido.alerta(); toast(e.message, { icono: "fa-lock" }); });
     });
   }
   document.addEventListener("click", cerrarMenuUsuario);

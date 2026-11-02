@@ -69,7 +69,7 @@ $("#recetas").addEventListener("click", (e) => { const b = e.target.closest("[da
 
 $("#btnFaltantes").addEventListener("click", () => {
   const faltan = abierta.ingredientes.filter((i) => !i.disponible);
-  faltan.forEach((i) => QHDC.agregarExtra(i.nombre, i.cantidad, i.producto ? i.producto.precio : 0));
+  faltan.forEach((i) => QHDC.agregarExtra(i.nombre, i.cantidad, i.producto ? i.producto.precio : 0, abierta.id));
   Sonido.marcar();
   $("#btnFaltantes").disabled = true;
   $("#btnFaltantes").innerHTML = '<i class="fa-solid fa-check"></i> Anotado en tu lista';
@@ -133,9 +133,12 @@ $("#mcTimerBtn").addEventListener("click", () => {
 });
 
 function terminar() {
-  abierta.ingredientes.filter((i) => i.disponible).forEach((i) => {
-    QHDC.consumir(i.producto.id, Math.min(i.producto.cantidad, +(i.producto.capacidad * 0.2).toFixed(2)));
-  });
+  // Se descuenta una porción de cada ingrediente y queda registrada la receta preparada
+  const consumos = abierta.ingredientes.filter((i) => i.disponible).map((i) => ({
+    productoId: i.producto.id,
+    cantidad: Math.min(i.producto.cantidad, +(i.producto.capacidad * 0.2).toFixed(2)),
+  }));
+  QHDC.terminarReceta(abierta.id, consumos);
   cerrarModoCocina();
   Sonido.exito();
   Efectos.confeti();

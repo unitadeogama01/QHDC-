@@ -55,12 +55,25 @@ function validar() {
   return true;
 }
 
-$("#formRegistro").addEventListener("submit", (e) => {
+// Texto de los chips elegidos ("3 a 4", ["Refrigerador", "Despensa"])
+const elegidos = (sel) => $$(`${sel} .chip[aria-pressed="true"]`).map((c) => c.textContent.trim());
+
+$("#formRegistro").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!validar()) return;
   if (etapa < 2) { etapa++; Sonido.subir(); mostrar(); return; }
-  const r = QHDC.registrar({ nombre: $("#nombre").value, email: $("#email").value, password: $("#password").value, hogar: $("#hogar").value });
-  if (r.error) { etapa = 0; mostrar(); return error(r.error, $("#email")); }
+  const boton = $("#btnSiguiente");
+  boton.disabled = true;
+  const r = await QHDC.registrar({
+    nombre: $("#nombre").value, email: $("#email").value, password: $("#password").value, hogar: $("#hogar").value,
+    personas: elegidos("#personas")[0], lugares: elegidos("#lugares"),
+  });
+  boton.disabled = false;
+  if (r.error) {
+    const delCorreo = /correo/i.test(r.error);
+    if (delCorreo) { etapa = 0; mostrar(); }
+    return error(r.error, delCorreo ? $("#email") : null);
+  }
   Sonido.exito();
   Efectos.confeti();
   // Cuenta nueva: se vuelven a mostrar los recorridos de todas las pantallas

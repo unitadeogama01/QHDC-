@@ -1,7 +1,8 @@
 // ============================================================
 //  QHDC! — Entrar (login.html)
 //  Perfiles guardados en el dispositivo (un toque) o correo y
-//  contraseña con "Otra cuenta".
+//  contraseña con "Otra cuenta". La primera vez en un dispositivo
+//  no hay perfiles: el formulario aparece abierto.
 // ============================================================
 
 if (QHDC.sesionActual()) location.replace("dashboard.html");
@@ -33,9 +34,15 @@ $("#perfiles").innerHTML = QHDC.perfiles().slice(0, 5).map((p) => `
     <small>Con correo</small>
   </button>`;
 
-$("#perfiles").addEventListener("click", (e) => {
+// Sin perfiles guardados: se muestra directo el formulario
+if (!QHDC.perfiles().length) {
+  $("#formLogin").classList.remove("oculto");
+  $("#otraCuenta").setAttribute("aria-expanded", "true");
+}
+
+$("#perfiles").addEventListener("click", async (e) => {
   const b = e.target.closest(".perfil");
-  if (!b) return;
+  if (!b || b.classList.contains("entrando")) return;
   if (b.id === "otraCuenta") {
     const oculto = $("#formLogin").classList.toggle("oculto");
     b.setAttribute("aria-expanded", !oculto);
@@ -44,9 +51,22 @@ $("#perfiles").addEventListener("click", (e) => {
   }
   b.classList.add("entrando");
   Sonido.exito();
-  setTimeout(() => {
-    if (QHDC.entrarComoPerfil(b.dataset.email)) location.href = "dashboard.html";
-  }, 550);
+  const espera = new Promise((ok) => setTimeout(ok, 550)); // deja ver la animación
+  try {
+    const sesion = await QHDC.entrarComoPerfil(b.dataset.email);
+    await espera;
+    if (sesion) return (location.href = "dashboard.html");
+    // El perfil expiró: se pide la contraseña con el correo ya escrito
+    b.remove();
+    $("#formLogin").classList.remove("oculto");
+    $("#email").value = b.dataset.email;
+    error("Tu perfil guardado expiró. Escribe tu contraseña.", $("#password"));
+  } catch (err) {
+    await espera;
+    b.classList.remove("entrando");
+    $("#formLogin").classList.remove("oculto");
+    error(err.message);
+  }
 });
 
 // ---------- Correo y contraseña ----------
@@ -57,15 +77,23 @@ function error(texto, campo) {
   if (campo) { campo.classList.remove("invalido"); void campo.offsetWidth; campo.classList.add("invalido"); campo.focus(); }
   Sonido.alerta();
 }
-$("#formLogin").addEventListener("submit", (e) => {
+$("#formLogin").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = $("#email"), pass = $("#password");
+  const boton = $('#formLogin button[type="submit"]');
   [email, pass].forEach((c) => c.classList.remove("invalido"));
   if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) return error("Escribe un correo válido.", email);
   if (!pass.value) return error("Escribe tu contraseña.", pass);
-  if (!QHDC.iniciarSesion(email.value.trim(), pass.value)) return error("El correo o la contraseña no coinciden.", pass);
-  Sonido.exito();
-  location.href = "dashboard.html";
+  boton.disabled = true;
+  try {
+    if (!(await QHDC.iniciarSesion(email.value.trim(), pass.value))) return error("El correo o la contraseña no coinciden.", pass);
+    Sonido.exito();
+    location.href = "dashboard.html";
+  } catch (err) {
+    error(err.message);
+  } finally {
+    boton.disabled = false;
+  }
 });
 
 document.querySelectorAll(".ver-clave").forEach((b) => b.addEventListener("click", () => {

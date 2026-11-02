@@ -2,9 +2,9 @@
 //  QHDC! — Dispositivos (sensores.html)
 //  HU-03 Actualización automática mediante sensores IoT
 //
-//  Cada 3 segundos se reciben lecturas (QHDC.simularCiclo hace lo
-//  mismo que los ESP32 reales mientras no exista el hardware) y se
-//  actualizan los valores en su lugar, sin redibujar toda la página.
+//  Cada 3 segundos se piden al servidor las lecturas nuevas que
+//  mandaron los ESP32 (QHDC.simularCiclo) y se actualizan los valores
+//  en su lugar, sin redibujar toda la página.
 // ============================================================
 
 const { $, $$, esc, frasco, toast, abrirModal } = UI;

@@ -212,7 +212,7 @@ $("#detectados").addEventListener("change", (e) => {
 
 $("#btnAgregar").addEventListener("click", () => {
   const elegidos = detectados.filter((a) => a.elegido);
-  QHDC.agregarDesdeCamara(elegidos);
+  QHDC.agregarDesdeCamara(elegidos, detectados);
   Sonido.exito();
   Efectos.confeti();
   UI.actualizarContadores();

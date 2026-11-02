@@ -3,8 +3,9 @@
 //  HU-05 Qué consumir primero · HU-06 Predicción de consumo
 //
 //  Conversación tipo chat. Las respuestas se arman con los datos
-//  de la cocina (QHDC). Cuando exista el modelo de IA en el
-//  servidor, solo se cambia la función responder().
+//  de la cocina (QHDC) y cada pregunta queda guardada en la base
+//  (conversaciones_asistente). Para usar un modelo de IA real,
+//  solo se cambia la función responder().
 // ============================================================
 
 const { $, $$, esc, iconoProducto, badgeCaducidad } = UI;
@@ -98,7 +99,9 @@ async function preguntar(texto) {
   if (!texto.trim()) return;
   Sonido.subir();
   mensajeYo(texto);
-  await mensajeIA(responder(texto));
+  const respuesta = responder(texto);
+  QHDC.registrarConversacion(texto, respuesta); // queda en el historial del asistente
+  await mensajeIA(respuesta);
 }
 
 // ---------- Eventos ----------
@@ -141,7 +144,7 @@ function dias() {
 function dibujarGrafica() {
   const p = QHDC.producto($("#productoGrafica").value);
   if (!p) return;
-  const v = p.historial, max = Math.max(...v) * 1.2, prom = v.reduce((s, x) => s + x, 0) / v.length;
+  const v = p.historial, max = Math.max(...v) * 1.2 || 1, prom = v.reduce((s, x) => s + x, 0) / v.length;
   const nombres = dias();
   const iMax = v.indexOf(Math.max(...v));
   $("#grafica").setAttribute("aria-label", `Consumo diario de ${p.nombre} en los últimos 7 días`);

@@ -1,17 +1,22 @@
 // ============================================================
-//  QHDC! — DATOS Y LÓGICA (simulación del backend)
+//  QHDC! — DATOS Y LÓGICA (conectado al servidor Express + MySQL)
 //
-//  Mientras no conectemos el servidor, todo se guarda en el
-//  navegador con localStorage. Así, si agregas un alimento en
-//  "Inventario", también aparece en "Panel", "Alertas", etc.
-//
-//  Cuando exista el backend, solo hay que cambiar las funciones
-//  de este archivo por llamadas fetch() a la API.
+//  Cómo funciona:
+//  1. Al abrir una página se pide todo el estado del hogar a la API
+//     (GET /api/estado). Mientras llega, las páginas esperan: sus scripts
+//     se declaran con data-qhdc-src y este archivo los carga después.
+//  2. Las pantallas leen los datos de una copia en memoria (caché), así
+//     todo responde al instante y el código de cada página no cambia.
+//  3. Cada cambio (usar, rellenar, comprar...) se aplica en la caché y se
+//     manda al servidor en una COLA, en orden. Si el servidor rechaza un
+//     cambio, se avisa y la página se recarga con los datos reales.
+//  4. Los cálculos (frescura, caducidad, lista sugerida) son los mismos de
+//     siempre; la base de datos tiene vistas equivalentes.
 // ============================================================
 
 const QHDC = (() => {
-  const CLAVE_DATOS = "qhdc_datos_v1";
-  const CLAVE_SESION = "qhdc_sesion";
+  const API = "/api";
+  const CLAVE_PERFILES = "qhdc_perfiles";
 
   // ---------------- FECHAS ----------------
   function hoy() {
@@ -30,20 +35,12 @@ const QHDC = (() => {
     return Math.round((new Date(fechaTexto + "T00:00:00") - hoy()) / 86400000);
   }
 
-  // Número pseudoaleatorio repetible (para que los datos de ejemplo siempre sean iguales)
-  let semillaAzar = 7;
-  function azar() {
-    semillaAzar = (semillaAzar * 9301 + 49297) % 233280;
-    return semillaAzar / 233280;
-  }
-  function historialConsumo(diario) {
-    return Array.from({ length: 7 }, () => +(diario * (0.55 + azar() * 0.9)).toFixed(2));
-  }
-
-  // ---------------- CATÁLOGOS ----------------
-  const CATEGORIAS = ["Granos y cereales", "Lácteos", "Carnes y pescados", "Verduras", "Frutas", "Bebidas", "Otros"];
-  const UBICACIONES = ["Refrigerador", "Despensa", "Congelador"];
-  const UNIDADES = ["g", "kg", "L", "ml", "pz", "manojo"];
+  // ---------------- CATÁLOGOS (llegan del servidor) ----------------
+  const CATEGORIAS = [];
+  const UBICACIONES = [];
+  const UNIDADES = [];
+  const RECETAS = [];
+  const CATALOGO_CAMARA = [];
 
   // Iconos de Font Awesome disponibles para los productos
   const ICONOS = [
@@ -67,219 +64,124 @@ const QHDC = (() => {
     { clase: "fa-box-open", nombre: "Otro" },
   ];
 
-  // Recetas de ejemplo (en el futuro las generará la IA)
-  const RECETAS = [
-    {
-      id: 1, nombre: "Arroz con pollo y espinaca", icono: "fa-bowl-food", color: "tomate",
-      tiempo: 40, porciones: 4, dificultad: "Fácil",
-      ingredientes: [
-        { nombre: "Arroz", cantidad: "1 ½ tazas" }, { nombre: "Pollo", cantidad: "500 g" },
-        { nombre: "Espinaca", cantidad: "1 manojo" }, { nombre: "Jitomate", cantidad: "2 piezas" },
-      ],
-      pasos: [
-        "Corta el pollo en cubos y dóralo con un poco de aceite.",
-        "Licúa el jitomate con ajo y cebolla, y agrégalo al pollo.",
-        "Añade el arroz lavado y 3 tazas de agua. Cocina tapado 20 minutos.",
-        "Al final incorpora la espinaca picada y deja reposar 5 minutos.",
-      ],
-    },
-    {
-      id: 2, nombre: "Tinga de pollo", icono: "fa-fire-burner", color: "mostaza",
-      tiempo: 35, porciones: 4, dificultad: "Fácil",
-      ingredientes: [
-        { nombre: "Pollo", cantidad: "500 g" }, { nombre: "Jitomate", cantidad: "3 piezas" },
-        { nombre: "Chile", cantidad: "2 piezas" }, { nombre: "Tortilla", cantidad: "12 piezas" },
-      ],
-      pasos: [
-        "Cuece el pollo y deshébralo.",
-        "Sofríe cebolla en rodajas y agrega el jitomate licuado con el chile.",
-        "Incorpora el pollo y cocina 10 minutos.",
-        "Sirve sobre tostadas o tortillas calientes.",
-      ],
-    },
-    {
-      id: 3, nombre: "Omelette de espinaca y queso", icono: "fa-egg", color: "oliva",
-      tiempo: 10, porciones: 1, dificultad: "Muy fácil",
-      ingredientes: [
-        { nombre: "Huevo", cantidad: "2 piezas" }, { nombre: "Espinaca", cantidad: "1 puño" },
-        { nombre: "Queso", cantidad: "50 g" },
-      ],
-      pasos: [
-        "Bate los huevos con una pizca de sal.",
-        "Vierte en un sartén caliente y agrega espinaca y queso.",
-        "Dobla a la mitad y cocina 1 minuto más.",
-      ],
-    },
-    {
-      id: 4, nombre: "Chilaquiles verdes con huevo", icono: "fa-utensils", color: "oliva",
-      tiempo: 25, porciones: 2, dificultad: "Fácil",
-      ingredientes: [
-        { nombre: "Tortilla", cantidad: "8 piezas" }, { nombre: "Huevo", cantidad: "2 piezas" },
-        { nombre: "Chile", cantidad: "3 piezas" }, { nombre: "Queso", cantidad: "80 g" },
-      ],
-      pasos: [
-        "Corta las tortillas en triángulos y dóralas.",
-        "Prepara una salsa verde con los chiles y báñalas.",
-        "Sirve con huevo estrellado y queso encima.",
-      ],
-    },
-    {
-      id: 5, nombre: "Pasta al pomodoro", icono: "fa-wheat-awn", color: "tomate",
-      tiempo: 20, porciones: 3, dificultad: "Fácil",
-      ingredientes: [
-        { nombre: "Pasta", cantidad: "250 g" }, { nombre: "Jitomate", cantidad: "4 piezas" },
-        { nombre: "Queso", cantidad: "60 g" },
-      ],
-      pasos: [
-        "Cuece la pasta en agua con sal.",
-        "Cocina el jitomate picado con ajo y aceite hasta que espese.",
-        "Mezcla con la pasta y termina con queso rallado.",
-      ],
-    },
-    {
-      id: 6, nombre: "Frijoles de la olla con pico de gallo", icono: "fa-jar", color: "cafe",
-      tiempo: 90, porciones: 6, dificultad: "Media",
-      ingredientes: [
-        { nombre: "Frijol", cantidad: "500 g" }, { nombre: "Jitomate", cantidad: "2 piezas" },
-        { nombre: "Chile", cantidad: "1 pieza" }, { nombre: "Limón", cantidad: "1 pieza" },
-      ],
-      pasos: [
-        "Remoja los frijoles desde la noche anterior.",
-        "Cuécelos con cebolla y sal hasta que estén suaves.",
-        "Pica jitomate, chile y cebolla; agrega limón para el pico de gallo.",
-      ],
-    },
-    {
-      id: 7, nombre: "Pescado al limón con arroz", icono: "fa-fish", color: "mostaza",
-      tiempo: 30, porciones: 2, dificultad: "Media",
-      ingredientes: [
-        { nombre: "Pescado", cantidad: "2 filetes" }, { nombre: "Limón", cantidad: "2 piezas" },
-        { nombre: "Arroz", cantidad: "1 taza" }, { nombre: "Zanahoria", cantidad: "1 pieza" },
-      ],
-      pasos: [
-        "Marina el pescado con limón, sal y pimienta 10 minutos.",
-        "Prepara el arroz con la zanahoria en cubitos.",
-        "Cocina el pescado a la plancha 4 minutos por lado.",
-      ],
-    },
-    {
-      id: 8, nombre: "Arroz con leche", icono: "fa-mug-hot", color: "cafe",
-      tiempo: 45, porciones: 6, dificultad: "Fácil",
-      ingredientes: [
-        { nombre: "Arroz", cantidad: "1 taza" }, { nombre: "Leche", cantidad: "1 L" },
-      ],
-      pasos: [
-        "Cuece el arroz en agua con canela hasta que abra.",
-        "Agrega la leche y azúcar al gusto.",
-        "Cocina a fuego bajo moviendo hasta que espese.",
-      ],
-    },
-  ];
+  // ---------------- CACHÉ ----------------
+  let sesion = null;
+  let datos = { productos: [], sensores: [], lecturas: [], listaExtra: [], comprados: [], alertasLeidas: [], escaneos: [] };
+  let ultimaLecturaId = 0;
+  let lecturasNuevas = [];
 
-  // Alimentos que la "IA de la cámara" puede reconocer (HU-10)
-  const CATALOGO_CAMARA = [
-    { nombre: "Manzana", categoria: "Frutas", icono: "fa-apple-whole", color: "tomate", unidad: "pz", cantidad: 6, vida: 14, precio: 30 },
-    { nombre: "Plátano", categoria: "Frutas", icono: "fa-lemon", color: "mostaza", unidad: "pz", cantidad: 6, vida: 5, precio: 20 },
-    { nombre: "Jitomate", categoria: "Verduras", icono: "fa-apple-whole", color: "tomate", unidad: "pz", cantidad: 5, vida: 6, precio: 25 },
-    { nombre: "Leche", categoria: "Lácteos", icono: "fa-glass-water", color: "cafe", unidad: "L", cantidad: 1, vida: 7, precio: 28 },
-    { nombre: "Huevo", categoria: "Lácteos", icono: "fa-egg", color: "mostaza", unidad: "pz", cantidad: 12, vida: 20, precio: 45 },
-    { nombre: "Queso Oaxaca", categoria: "Lácteos", icono: "fa-cheese", color: "mostaza", unidad: "g", cantidad: 400, vida: 12, precio: 70 },
-    { nombre: "Zanahoria", categoria: "Verduras", icono: "fa-carrot", color: "tomate", unidad: "pz", cantidad: 6, vida: 14, precio: 12 },
-    { nombre: "Brócoli", categoria: "Verduras", icono: "fa-leaf", color: "oliva", unidad: "pz", cantidad: 1, vida: 5, precio: 22 },
-    { nombre: "Limón", categoria: "Frutas", icono: "fa-lemon", color: "oliva", unidad: "pz", cantidad: 10, vida: 14, precio: 20 },
-    { nombre: "Yogur natural", categoria: "Lácteos", icono: "fa-bottle-water", color: "cafe", unidad: "L", cantidad: 1, vida: 10, precio: 35 },
-  ];
+  function reemplazar(lista, nuevos) { lista.splice(0, lista.length, ...(nuevos || [])); }
 
-  // ---------------- DATOS INICIALES ----------------
-  function semilla() {
-    semillaAzar = 7;
-    const P = (id, nombre, categoria, ubicacion, cantidad, capacidad, unidad, cad, precio, icono, color, consumoDiario, vida, extra = {}) => ({
-      id, nombre, categoria, ubicacion, cantidad, capacidad, unidad,
-      caducidad: enDias(cad), precio, icono, color, consumoDiario, vida,
-      origen: "manual", sensorId: null, aviso: 3, historial: historialConsumo(consumoDiario), ...extra,
-    });
-
-    const productos = [
-      P(1, "Arroz", "Granos y cereales", "Despensa", 200, 1000, "g", 180, 32, "fa-bowl-rice", "cafe", 45, 365, { origen: "sensor", sensorId: 1 }),
-      P(2, "Frijol negro", "Granos y cereales", "Despensa", 650, 1000, "g", 240, 38, "fa-jar", "cafe", 40, 365, { origen: "sensor", sensorId: 1 }),
-      P(3, "Pasta", "Granos y cereales", "Despensa", 300, 500, "g", 200, 18, "fa-wheat-awn", "mostaza", 35, 365, { origen: "sensor", sensorId: 2 }),
-      P(4, "Café molido", "Bebidas", "Despensa", 280, 400, "g", 90, 95, "fa-mug-hot", "cafe", 14, 180, { origen: "sensor", sensorId: 2 }),
-      P(5, "Leche", "Lácteos", "Refrigerador", 0.4, 2, "L", 3, 28, "fa-glass-water", "cafe", 0.35, 7),
-      P(6, "Huevo", "Lácteos", "Refrigerador", 4, 30, "pz", 12, 75, "fa-egg", "mostaza", 2, 21),
-      P(7, "Pechuga de pollo", "Carnes y pescados", "Refrigerador", 800, 1000, "g", 1, 95, "fa-drumstick-bite", "tomate", 150, 3),
-      P(8, "Espinaca", "Verduras", "Refrigerador", 1, 1, "manojo", 2, 15, "fa-leaf", "oliva", 0.3, 5, { origen: "camara" }),
-      P(9, "Jitomate", "Verduras", "Refrigerador", 5, 8, "pz", 5, 25, "fa-apple-whole", "tomate", 1, 7, { origen: "camara" }),
-      P(10, "Queso Oaxaca", "Lácteos", "Refrigerador", 250, 400, "g", 8, 70, "fa-cheese", "mostaza", 30, 12),
-      P(11, "Zanahoria", "Verduras", "Refrigerador", 6, 8, "pz", 10, 12, "fa-carrot", "tomate", 0.6, 14),
-      P(12, "Tortilla de maíz", "Granos y cereales", "Refrigerador", 0.3, 1, "kg", 4, 22, "fa-bread-slice", "mostaza", 0.2, 5),
-      P(13, "Yogur natural", "Lácteos", "Refrigerador", 0.5, 1, "L", -1, 35, "fa-bottle-water", "cafe", 0.15, 10),
-      P(14, "Limón", "Frutas", "Refrigerador", 8, 12, "pz", 7, 20, "fa-lemon", "oliva", 1, 14),
-      P(15, "Filete de pescado", "Carnes y pescados", "Congelador", 500, 1000, "g", 30, 110, "fa-fish", "mostaza", 40, 60),
-      P(16, "Chile serrano", "Verduras", "Refrigerador", 10, 20, "pz", 6, 10, "fa-pepper-hot", "oliva", 1, 10),
-    ];
-
-    const sensores = [
-      { id: 1, nombre: "Báscula de despensa A", tipo: "peso", modelo: "ESP32 + HX711", ubicacion: "Despensa", productos: [1, 2], enLinea: true, bateria: 86, senal: -58 },
-      { id: 2, nombre: "Báscula de despensa B", tipo: "peso", modelo: "ESP32 + HX711", ubicacion: "Despensa", productos: [3, 4], enLinea: true, bateria: 72, senal: -63 },
-      { id: 3, nombre: "Sensor de frescura", tipo: "gas", modelo: "ESP32 + MQ-135 + DHT22", ubicacion: "Refrigerador", productos: [], enLinea: true, bateria: 64, senal: -70, gas: 190, temperatura: 4.2, humedad: 61 },
-      { id: 4, nombre: "Termómetro de congelador", tipo: "temperatura", modelo: "ESP32 + DS18B20", ubicacion: "Congelador", productos: [], enLinea: false, bateria: 12, senal: -88, temperatura: -17.5 },
-    ];
-
-    // Lecturas de la última hora
-    const lecturas = [];
-    const ahora = Date.now();
-    for (let i = 12; i >= 1; i--) {
-      [1, 2, 3, 4].forEach((pid) => {
-        const p = productos.find((x) => x.id === pid);
-        lecturas.push({
-          fecha: new Date(ahora - i * 5 * 60000).toISOString(),
-          sensorId: p.sensorId, productoId: pid,
-          valor: Math.round(p.cantidad + i * p.consumoDiario * 0.05), unidad: p.unidad,
-        });
-      });
-    }
-
-    return {
-      productos, sensores, lecturas,
-      hogar: "Casa Contreras",
-      usuarios: [
-        { nombre: "Tadeo Contreras", email: "admin@qhdc.mx", password: "admin123", rol: "Administrador", hogar: "Casa Contreras" },
-        { nombre: "Marilú Ramírez", email: "miembro@qhdc.mx", password: "miembro123", rol: "Miembro", hogar: "Casa Contreras" },
-      ],
-      listaExtra: [{ id: 1, nombre: "Aceite de oliva", cantidad: "1 botella", precio: 120 }],
-      comprados: [],
-      alertasLeidas: [],
-      escaneos: [],
-      siguienteId: 100,
+  function aplicarEstado(e) {
+    sesion = e.sesion || null;
+    datos = {
+      productos: e.productos || [],
+      sensores: e.sensores || [],
+      lecturas: e.lecturas || [],
+      listaExtra: e.listaExtra || [],
+      comprados: e.comprados || [],
+      alertasLeidas: e.alertasLeidas || [],
+      escaneos: e.escaneos || [],
     };
+    reemplazar(CATEGORIAS, e.categorias);
+    reemplazar(UBICACIONES, e.ubicaciones);
+    reemplazar(UNIDADES, e.unidades);
+    reemplazar(RECETAS, e.recetas);
+    reemplazar(CATALOGO_CAMARA, e.catalogo);
+    ultimaLecturaId = datos.lecturas.reduce((m, l) => Math.max(m, l.id || 0), ultimaLecturaId);
   }
 
-  // ---------------- GUARDAR / CARGAR ----------------
-  let datos;
-  function cargar() {
+  // ---------------- COMUNICACIÓN CON EL SERVIDOR ----------------
+  const conKeepalive = (() => { try { return "keepalive" in new Request("/"); } catch (e) { return false; } })();
+
+  async function pedir(metodo, ruta, cuerpo) {
+    let r;
     try {
-      datos = JSON.parse(localStorage.getItem(CLAVE_DATOS));
+      r = await fetch(API + ruta, {
+        method: metodo,
+        credentials: "same-origin",
+        headers: cuerpo !== undefined ? { "Content-Type": "application/json" } : {},
+        body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
+        // keepalive: el cambio se termina de enviar aunque cambies de página
+        keepalive: conKeepalive && metodo !== "GET",
+      });
     } catch (e) {
-      datos = null;
+      const err = new Error("No hay conexión con el servidor.");
+      err.estado = 0;
+      throw err;
     }
-    if (!datos || !Array.isArray(datos.productos)) {
-      datos = semilla();
-      guardar();
+    let json = null;
+    try { json = await r.json(); } catch (e) { /* respuesta sin cuerpo */ }
+    if (!r.ok) {
+      const err = new Error((json && json.error) || `Error ${r.status}`);
+      err.estado = r.status;
+      throw err;
     }
+    return json;
   }
-  function guardar() {
+
+  // Ids temporales: un alimento nuevo existe en pantalla antes de que el
+  // servidor le dé su id real. Se usan negativos y luego se traducen.
+  let idTemporal = 0;
+  const mapaIds = new Map();
+  const real = (id) => (mapaIds.has(Number(id)) ? mapaIds.get(Number(id)) : Number(id));
+  const claveReal = (clave) => clave.replace(/^([px])-(-?\d+)$/, (_, t, n) => `${t}-${real(n)}`);
+
+  function asignarId(temporal, idReal) {
+    mapaIds.set(temporal, idReal);
+    [datos.productos, datos.listaExtra].forEach((lista) => lista.forEach((x) => { if (x.id === temporal) x.id = idReal; }));
+    datos.comprados = datos.comprados.map(claveReal);
+  }
+
+  // Cola: los cambios se mandan uno por uno y en orden
+  let cola = Promise.resolve();
+  let pendientes = 0;
+  let temporizadorSync = null;
+
+  function avisar(texto) {
+    if (typeof UI !== "undefined" && typeof UI.toast === "function") UI.toast(texto, { icono: "fa-triangle-exclamation" });
+    else console.warn(texto);
+    if (typeof Sonido !== "undefined") Sonido.alerta();
+  }
+
+  function enviar(metodo, ruta, cuerpo, { alTerminar, silencioso = false } = {}) {
+    pendientes++;
+    const tarea = cola
+      .then(() => pedir(metodo, typeof ruta === "function" ? ruta() : ruta, typeof cuerpo === "function" ? cuerpo() : cuerpo))
+      .then((r) => { if (alTerminar) alTerminar(r); return r; })
+      .catch((e) => {
+        if (silencioso) return null;
+        if (e.estado === 401) { location.replace("login.html"); return null; }
+        avisar(e.estado === 0 ? "Sin conexión con el servidor. No se guardó el cambio." : e.message);
+        setTimeout(() => location.reload(), 2200); // vuelve a mostrar lo que hay en la base
+        return null;
+      })
+      .finally(() => {
+        pendientes--;
+        if (!pendientes) programarSincronizacion();
+      });
+    cola = tarea;
+    return tarea;
+  }
+
+  // Después de guardar, se trae el estado real (por si otro miembro del
+  // hogar o un sensor cambió algo)
+  function programarSincronizacion(ms = 1500) {
+    clearTimeout(temporizadorSync);
+    temporizadorSync = setTimeout(sincronizar, ms);
+  }
+  async function sincronizar() {
+    if (!sesion) return;
     try {
-      localStorage.setItem(CLAVE_DATOS, JSON.stringify(datos));
+      const e = await pedir("GET", "/estado");
+      if (pendientes) return; // llegaron cambios nuevos mientras tanto
+      aplicarEstado(e);
+      document.dispatchEvent(new CustomEvent("qhdc:datos"));
+      if (typeof UI !== "undefined" && typeof UI.actualizarContadores === "function") UI.actualizarContadores();
     } catch (e) {
-      console.warn("No se pudo guardar en localStorage", e);
+      if (e.estado === 401) location.replace("login.html");
     }
   }
-  function nuevoId() {
-    datos.siguienteId += 1;
-    guardar();
-    return datos.siguienteId;
-  }
-  cargar();
 
   // ---------------- CÁLCULOS DE UN PRODUCTO ----------------
   function estado(p) {
@@ -309,10 +211,11 @@ const QHDC = (() => {
 
   // ---------------- PRODUCTOS (HU-01, HU-02, HU-04) ----------------
   const productos = () => datos.productos.map((p) => ({ ...p, estado: estado(p) }));
-  const producto = (id) => productos().find((p) => p.id === Number(id));
+  const producto = (id) => productos().find((p) => p.id === real(id));
+  const buscar = (id) => datos.productos.find((x) => x.id === real(id));
 
-  function guardarProducto(info) {
-    const limpio = {
+  function fichaLimpia(info) {
+    return {
       nombre: String(info.nombre).trim(),
       categoria: info.categoria,
       ubicacion: info.ubicacion,
@@ -325,34 +228,51 @@ const QHDC = (() => {
       color: info.color || "cafe",
       aviso: Number(info.aviso) || 3,
     };
-    if (info.id) {
-      const p = datos.productos.find((x) => x.id === Number(info.id));
-      Object.assign(p, limpio);
-      guardar();
-      return p;
-    }
+  }
+
+  // Solo en la caché (lo usan el formulario y la cámara)
+  function crearLocal(limpio, origen) {
     const consumo = +(limpio.capacidad / 30).toFixed(2);
     const nuevo = {
-      id: nuevoId(), ...limpio, origen: info.origen || "manual", sensorId: null,
-      consumoDiario: consumo, vida: Math.max(1, diasHasta(limpio.caducidad)), historial: historialConsumo(consumo),
+      id: --idTemporal, ...limpio, origen: origen || "manual", sensorId: null,
+      consumoDiario: consumo, vida: Math.max(1, diasHasta(limpio.caducidad)), historial: Array(7).fill(0),
     };
     datos.productos.push(nuevo);
-    guardar();
+    return nuevo;
+  }
+
+  function guardarProducto(info) {
+    const limpio = fichaLimpia(info);
+    if (info.id) {
+      const p = buscar(info.id);
+      Object.assign(p, limpio);
+      enviar("PUT", () => `/alimentos/${real(p.id)}`, limpio);
+      return p;
+    }
+    const nuevo = crearLocal(limpio, info.origen);
+    const temporal = nuevo.id;
+    enviar("POST", "/alimentos", { ...limpio, origen: nuevo.origen }, { alTerminar: (r) => asignarId(temporal, r.id) });
     return nuevo;
   }
 
   // Devuelve el producto borrado para poder "deshacer"
   function eliminarProducto(id) {
-    const borrado = datos.productos.find((p) => p.id === Number(id));
-    datos.productos = datos.productos.filter((p) => p.id !== Number(id));
-    datos.comprados = datos.comprados.filter((k) => k !== `p-${id}`);
-    guardar();
+    const borrado = buscar(id);
+    datos.productos = datos.productos.filter((p) => p !== borrado);
+    datos.comprados = datos.comprados.filter((k) => k !== `p-${borrado.id}`);
+    enviar("DELETE", () => `/alimentos/${real(borrado.id)}`);
     return borrado;
   }
   function restaurarProducto(producto) {
-    if (!producto || datos.productos.some((p) => p.id === producto.id)) return;
+    if (!producto || datos.productos.some((p) => p.id === real(producto.id))) return;
     datos.productos.push(producto);
-    guardar();
+    enviar("POST", () => `/alimentos/${real(producto.id)}/restaurar`, {});
+  }
+
+  /** Manda al servidor la cantidad que quedó (él calcula consumo o entrada) */
+  function guardarExistencia(p, extra = {}) {
+    const cuerpo = { cantidad: p.cantidad, capacidad: p.capacidad, caducidad: p.caducidad, ...extra };
+    enviar("PUT", () => `/alimentos/${real(p.id)}/existencia`, cuerpo);
   }
 
   // Tamaño de paso "natural" para los botones + / − de cada unidad
@@ -364,10 +284,10 @@ const QHDC = (() => {
   }
   // Suma o resta una cantidad (no baja de 0; si pasa del máximo, el máximo crece)
   function ajustar(id, delta) {
-    const p = datos.productos.find((x) => x.id === Number(id));
+    const p = buscar(id);
     p.cantidad = Math.max(0, +(p.cantidad + delta).toFixed(2));
     if (p.cantidad > p.capacidad) p.capacidad = p.cantidad;
-    guardar();
+    guardarExistencia(p);
     return { ...p, estado: estado(p) };
   }
 
@@ -383,18 +303,25 @@ const QHDC = (() => {
     return { valor, caducados, urgentes, pronto, bajos };
   }
 
-  function consumir(id, cantidad) {
-    const p = datos.productos.find((x) => x.id === Number(id));
+  function consumirLocal(id, cantidad) {
+    const p = buscar(id);
     p.cantidad = Math.max(0, +(p.cantidad - Number(cantidad)).toFixed(2));
-    guardar();
+    return p;
+  }
+  function consumir(id, cantidad) {
+    const p = consumirLocal(id, cantidad);
+    guardarExistencia(p);
     return p;
   }
 
-  function rellenar(id) {
-    const p = datos.productos.find((x) => x.id === Number(id));
+  function rellenarLocal(p) {
     p.cantidad = p.capacidad;
     if (diasHasta(p.caducidad) < 2) p.caducidad = enDias(p.vida || 7);
-    guardar();
+  }
+  function rellenar(id) {
+    const p = buscar(id);
+    rellenarLocal(p);
+    enviar("POST", () => `/alimentos/${real(p.id)}/rellenar`, {});
     return p;
   }
 
@@ -402,48 +329,46 @@ const QHDC = (() => {
   const sensores = () => datos.sensores.map((s) => ({ ...s }));
   const lecturas = (limite = 20) => datos.lecturas.slice(-limite).reverse();
 
-  // Un "ciclo" del simulador: hace lo mismo que harían los ESP32 reales
+  // Trae lo que mandaron los ESP32 desde la última vez
+  let pidiendoVivo = false;
+  async function traerEnVivo() {
+    if (pidiendoVivo || !sesion) return;
+    pidiendoVivo = true;
+    try {
+      const r = await pedir("GET", `/sensores/vivo?desde=${ultimaLecturaId}`);
+      // Se conserva lo que el usuario cambió (p. ej. "Conectar") mientras hay cambios pendientes
+      if (!pendientes) datos.sensores = r.sensores;
+      if (!pendientes) {
+        r.productos.forEach((n) => { const p = datos.productos.find((x) => x.id === n.id); if (p) Object.assign(p, n); });
+      }
+      r.lecturas.forEach((l) => { ultimaLecturaId = Math.max(ultimaLecturaId, l.id); });
+      datos.lecturas = datos.lecturas.concat(r.lecturas).slice(-300);
+      lecturasNuevas = lecturasNuevas.concat(r.lecturas);
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+    } finally {
+      pidiendoVivo = false;
+    }
+  }
+
+  // La pantalla de dispositivos llama esto cada pocos segundos: devuelve las
+  // lecturas que llegaron y pide las siguientes.
   function simularCiclo() {
-    const nuevas = [];
-    datos.sensores.forEach((s) => {
-      if (!s.enLinea) return;
-      if (s.tipo === "peso") {
-        s.productos.forEach((pid) => {
-          const p = datos.productos.find((x) => x.id === pid);
-          if (!p) return;
-          if (Math.random() < 0.35) p.cantidad -= p.consumoDiario * (0.1 + Math.random() * 0.4);
-          p.cantidad = Math.max(0, Math.round(p.cantidad + (Math.random() * 4 - 2)));
-          if (p.cantidad < p.capacidad * 0.05) p.cantidad = p.capacidad; // alguien compró y rellenó
-          const lectura = { fecha: new Date().toISOString(), sensorId: s.id, productoId: pid, valor: p.cantidad, unidad: p.unidad };
-          datos.lecturas.push(lectura);
-          nuevas.push(lectura);
-        });
-      }
-      if (s.tipo === "gas") {
-        // De vez en cuando algo empieza a echarse a perder
-        if (Math.random() < 0.06) s.gas += 220;
-        s.gas = Math.round(Math.max(150, s.gas + (Math.random() * 30 - 18)));
-        s.temperatura = +(4 + Math.random() * 0.8 - 0.4).toFixed(1);
-        s.humedad = Math.round(58 + Math.random() * 8);
-        const lectura = { fecha: new Date().toISOString(), sensorId: s.id, productoId: null, valor: s.gas, unidad: "ppm" };
-        datos.lecturas.push(lectura);
-        nuevas.push(lectura);
-      }
-      s.bateria = Math.max(5, s.bateria - (Math.random() < 0.05 ? 1 : 0));
-    });
-    datos.lecturas = datos.lecturas.slice(-300);
-    guardar();
+    const nuevas = lecturasNuevas;
+    lecturasNuevas = [];
+    traerEnVivo();
     return nuevas;
   }
 
   function alternarSensor(id) {
     const s = datos.sensores.find((x) => x.id === Number(id));
     s.enLinea = !s.enLinea;
-    guardar();
+    if (s.enLinea) enviar("POST", `/sensores/${s.id}/conectar`, {});
     return s;
   }
 
   // ---------------- ALERTAS (HU-04) ----------------
+  // Las claves (cad-7, stock-1, disp-4, gas-3) son las mismas de la tabla notificaciones
   function alertas() {
     const lista = [];
     productos().forEach((p) => {
@@ -465,7 +390,7 @@ const QHDC = (() => {
     });
     datos.sensores.forEach((s) => {
       if (!s.enLinea) {
-        lista.push({ id: `sensor-${s.id}`, tipo: "sensor", nivel: "info", icono: "fa-plug-circle-xmark", sensorId: s.id,
+        lista.push({ id: `disp-${s.id}`, tipo: "sensor", nivel: "info", icono: "fa-plug-circle-xmark", sensorId: s.id,
           titulo: `${s.nombre} desconectado`, detalle: `No recibimos datos del ${s.modelo} en ${s.ubicacion.toLowerCase()}. Revisa la batería (${s.bateria}%) o el WiFi.` });
       }
       if (s.tipo === "gas" && s.enLinea && s.gas > 400) {
@@ -482,8 +407,9 @@ const QHDC = (() => {
   function marcarLeida(id, leida = true) {
     datos.alertasLeidas = datos.alertasLeidas.filter((x) => x !== id);
     if (leida) datos.alertasLeidas.push(id);
-    guardar();
+    enviar("PUT", "/avisos/leida", () => ({ clave: claveAviso(id), leida }));
   }
+  const claveAviso = (id) => String(id).replace(/^(cad|stock)-(-?\d+)$/, (_, t, n) => `${t}-${real(n)}`);
 
   // ---------------- IA: CONSUMIR PRIMERO Y PREDICCIÓN (HU-05, HU-06) ----------------
   function consumirPrimero() {
@@ -526,6 +452,10 @@ const QHDC = (() => {
     return texto || "Todo en orden: no hay nada urgente en tu cocina.";
   }
 
+  function registrarConversacion(pregunta, respuesta) {
+    enviar("POST", "/asistente/mensajes", { pregunta, respuesta }, { silencioso: true });
+  }
+
   // ---------------- LISTA DE COMPRAS (HU-07) ----------------
   function listaCompras() {
     const auto = productos()
@@ -556,32 +486,35 @@ const QHDC = (() => {
   function marcarComprado(clave, comprado) {
     datos.comprados = datos.comprados.filter((k) => k !== clave);
     if (comprado) datos.comprados.push(clave);
-    guardar();
+    enviar("PUT", "/lista/comprado", () => ({ clave: claveReal(clave), comprado: Boolean(comprado) }));
   }
-  function agregarExtra(nombre, cantidad, precio) {
-    datos.listaExtra.push({ id: nuevoId(), nombre: String(nombre).trim(), cantidad: cantidad || "1", precio: Number(precio) || 0 });
-    guardar();
+  function agregarExtra(nombre, cantidad, precio, recetaId) {
+    const extra = { id: --idTemporal, nombre: String(nombre).trim(), cantidad: cantidad || "1", precio: Number(precio) || 0 };
+    datos.listaExtra.push(extra);
+    const temporal = extra.id;
+    enviar("POST", "/lista/extras", { nombre: extra.nombre, cantidad: extra.cantidad, precio: extra.precio, recetaId: recetaId || null },
+      { alTerminar: (r) => asignarId(temporal, r.id) });
   }
   function eliminarExtra(clave) {
     const id = Number(clave.replace("x-", ""));
-    datos.listaExtra = datos.listaExtra.filter((x) => x.id !== id);
+    datos.listaExtra = datos.listaExtra.filter((x) => x.id !== id && x.id !== real(id));
     datos.comprados = datos.comprados.filter((k) => k !== clave);
-    guardar();
+    enviar("DELETE", () => `/lista/extras/${real(id)}`);
   }
   // Al terminar de comprar: se rellenan los productos marcados
   function finalizarCompra() {
     let total = 0;
     datos.comprados.forEach((clave) => {
       if (clave.startsWith("p-")) {
-        const p = datos.productos.find((x) => x.id === Number(clave.slice(2)));
-        if (p) { total++; p.cantidad = p.capacidad; if (diasHasta(p.caducidad) < 2) p.caducidad = enDias(p.vida || 7); }
+        const p = buscar(clave.slice(2));
+        if (p) { total++; rellenarLocal(p); }
       } else {
         total++;
         datos.listaExtra = datos.listaExtra.filter((x) => `x-${x.id}` !== clave);
       }
     });
     datos.comprados = [];
-    guardar();
+    enviar("POST", "/lista/finalizar", {});
     return total;
   }
 
@@ -604,8 +537,16 @@ const QHDC = (() => {
     }).sort((a, b) => b.puntos - a.puntos || b.coincidencia - a.coincidencia);
   }
 
+  // "¡Terminé!" del modo cocina: descuenta lo usado y queda en el historial
+  function terminarReceta(recetaId, consumos) {
+    consumos.forEach((c) => consumirLocal(c.productoId, c.cantidad));
+    enviar("POST", `/recetas/${recetaId}/preparar`, () => ({
+      consumos: consumos.map((c) => ({ alimentoId: real(c.productoId), cantidad: c.cantidad })),
+    }));
+  }
+
   // ---------------- CÁMARA (HU-10) ----------------
-  // Simula lo que devolvería un modelo de visión
+  // Simula lo que devolvería un modelo de visión (el catálogo viene de la base)
   function detectarAlimentos() {
     const mezclados = [...CATALOGO_CAMARA].sort(() => Math.random() - 0.5);
     const cuantos = 3 + Math.floor(Math.random() * 2);
@@ -618,7 +559,8 @@ const QHDC = (() => {
 
   detectarAlimentos.catalogo = () => CATALOGO_CAMARA.map((a) => ({ ...a }));
 
-  function agregarDesdeCamara(alimentos) {
+  // alimentos = los que se guardan · todos = también los que se descartaron (para el historial)
+  function agregarDesdeCamara(alimentos, todos = alimentos) {
     alimentos.forEach((a) => {
       const existente = datos.productos.find((p) => normalizar(p.nombre) === normalizar(a.nombre));
       if (existente) {
@@ -626,51 +568,174 @@ const QHDC = (() => {
         existente.capacidad = Math.max(existente.capacidad, existente.cantidad);
         existente.caducidad = a.caducidad;
       } else {
-        guardarProducto({
+        crearLocal(fichaLimpia({
           nombre: a.nombre, categoria: a.categoria, ubicacion: a.categoria === "Granos y cereales" ? "Despensa" : "Refrigerador",
           cantidad: a.cantidad, capacidad: a.cantidad, unidad: a.unidad, caducidad: a.caducidad,
-          precio: a.precio, icono: a.icono, color: a.color, origen: "camara",
-        });
+          precio: a.precio, icono: a.icono, color: a.color,
+        }), "camara");
       }
     });
     datos.escaneos.unshift({ fecha: new Date().toISOString(), alimentos: alimentos.map((a) => a.nombre) });
     datos.escaneos = datos.escaneos.slice(0, 5);
-    guardar();
+    const elegidos = new Set(alimentos);
+    enviar("POST", "/escaneos", {
+      alimentos: todos.map((a) => ({
+        nombre: a.nombre, categoria: a.categoria, unidad: a.unidad, cantidad: a.cantidad, caducidad: a.caducidad,
+        precio: a.precio, icono: a.icono, color: a.color, confianza: a.confianza, caja: a.caja, elegido: elegidos.has(a),
+      })),
+    }, { alTerminar: () => programarSincronizacion(0) });
   }
   const escaneos = () => datos.escaneos;
 
   // ---------------- SESIÓN (HU-09) ----------------
-  function iniciarSesion(email, password) {
-    const u = datos.usuarios.find((x) => x.email === String(email).trim().toLowerCase());
-    if (!u || u.password !== password) return null;
-    const sesion = { nombre: u.nombre, email: u.email, rol: u.rol, hogar: u.hogar };
-    localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
-    return sesion;
+  // Perfiles guardados en este dispositivo: nombre + token para entrar con un toque
+  function leerPerfiles() {
+    try { return JSON.parse(localStorage.getItem(CLAVE_PERFILES)) || []; } catch (e) { return []; }
   }
-  function registrar({ nombre, email, password, hogar }) {
-    const correo = String(email).trim().toLowerCase();
-    if (datos.usuarios.some((u) => u.email === correo)) return { error: "Ese correo ya tiene una cuenta" };
-    datos.usuarios.push({ nombre: nombre.trim(), email: correo, password, rol: "Administrador", hogar: hogar.trim() || "Mi casa" });
-    guardar();
-    return { sesion: iniciarSesion(correo, password) };
+  function guardarPerfil(perfil) {
+    if (!perfil || !perfil.token) return;
+    const lista = leerPerfiles().filter((p) => p.email !== perfil.email);
+    lista.unshift(perfil);
+    try { localStorage.setItem(CLAVE_PERFILES, JSON.stringify(lista.slice(0, 5))); } catch (e) { /* sin almacenamiento */ }
   }
-  // Perfiles guardados en este dispositivo (para entrar con un toque)
-  const perfiles = () => datos.usuarios.map(({ nombre, email, rol }) => ({ nombre, email, rol }));
-  function entrarComoPerfil(email) {
-    const u = datos.usuarios.find((x) => x.email === email);
-    return u ? iniciarSesion(u.email, u.password) : null;
+  function olvidarPerfil(email) {
+    try { localStorage.setItem(CLAVE_PERFILES, JSON.stringify(leerPerfiles().filter((p) => p.email !== email))); } catch (e) { /* nada */ }
+  }
+  const perfiles = () => leerPerfiles().map(({ nombre, email, rol }) => ({ nombre, email, rol }));
+
+  async function iniciarSesion(email, password) {
+    try {
+      const r = await pedir("POST", "/auth/entrar", { email: String(email).trim().toLowerCase(), password });
+      guardarPerfil(r.perfil);
+      sesion = r.sesion;
+      return sesion;
+    } catch (e) {
+      if (e.estado === 401) return null;
+      throw e;
+    }
+  }
+  async function entrarComoPerfil(email) {
+    const p = leerPerfiles().find((x) => x.email === email);
+    if (!p) return null;
+    try {
+      const r = await pedir("POST", "/auth/perfil", { email: p.email, token: p.token });
+      sesion = r.sesion;
+      return sesion;
+    } catch (e) {
+      if (e.estado === 401) { olvidarPerfil(email); return null; }
+      throw e;
+    }
+  }
+  async function registrar({ nombre, email, password, hogar, personas, lugares }) {
+    try {
+      const r = await pedir("POST", "/auth/registro", { nombre: nombre.trim(), email: String(email).trim().toLowerCase(), password, hogar: hogar.trim() || "Mi casa", personas, lugares });
+      guardarPerfil(r.perfil);
+      sesion = r.sesion;
+      return { sesion };
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+  const sesionActual = () => sesion;
+  async function cerrarSesion() {
+    try { await pedir("POST", "/auth/salir", {}); } catch (e) { /* igual se sale */ }
+    sesion = null;
   }
 
-  function sesionActual() {
-    try { return JSON.parse(localStorage.getItem(CLAVE_SESION)); } catch (e) { return null; }
+  // Borra la alacena y carga la cocina de ejemplo (solo administrador)
+  async function reiniciar() {
+    await cola; // primero se terminan de guardar los cambios pendientes
+    await pedir("POST", "/hogar/restablecer", {});
   }
-  function cerrarSesion() { localStorage.removeItem(CLAVE_SESION); }
 
-  // Borra todo y vuelve a los datos de ejemplo (útil antes de presentar)
-  function reiniciar() {
-    datos = semilla();
-    guardar();
+  // ---------------- PREFERENCIAS SINCRONIZADAS ----------------
+  // Tema, sonidos, menú, vista y recorridos se guardan también en la base,
+  // así te siguen a cualquier dispositivo.
+  const PANTALLAS = ["dashboard", "inventario", "alertas", "lista-compras", "asistente", "recetas", "escanear", "sensores"];
+  function aplicarPreferencias(p) {
+    if (!p || typeof Pref === "undefined") return;
+    if (p.tema === "claro" || p.tema === "oscuro") {
+      document.documentElement.dataset.tema = p.tema;
+      Pref.guardar("qhdc_tema", p.tema);
+    }
+    if (typeof Sonido !== "undefined" && Sonido.activo() !== p.sonidos) Sonido.alternar();
+    Pref.guardar("qhdc_menu_compacto", p.menuCompacto ? "1" : "0");
+    Pref.guardar("qhdc_vista_alacena", p.vistaAlacena || "frascos");
+    PANTALLAS.forEach((pantalla) => {
+      try {
+        if (p.recorridos.includes(pantalla)) localStorage.setItem(`qhdc_tour_${pantalla}`, "1");
+        else localStorage.removeItem(`qhdc_tour_${pantalla}`);
+      } catch (e) { /* sin almacenamiento */ }
+    });
   }
+  function escucharPreferencias() {
+    if (typeof Pref === "undefined") return;
+    const original = Pref.guardar;
+    Pref.guardar = (clave, valor) => {
+      original(clave, valor);
+      if (!sesion) return;
+      const op = { silencioso: true };
+      if (clave === "qhdc_tema") enviar("PUT", "/preferencias", { tema: valor }, op);
+      else if (clave === "qhdc_sonido") enviar("PUT", "/preferencias", { sonidos: valor === "1" }, op);
+      else if (clave === "qhdc_menu_compacto") enviar("PUT", "/preferencias", { menuCompacto: valor === "1" }, op);
+      else if (clave === "qhdc_vista_alacena") enviar("PUT", "/preferencias", { vistaAlacena: valor }, op);
+      else if (clave.startsWith("qhdc_tour_")) enviar("PUT", `/recorridos/${clave.slice(10)}`, { completado: true }, op);
+    };
+  }
+
+  // ---------------- ARRANQUE DE LA PÁGINA ----------------
+  function mostrarSinServidor() {
+    const archivo = location.protocol === "file:";
+    document.body.insertAdjacentHTML("beforeend", `
+      <div role="alert" style="position:fixed;inset:0;z-index:2000;display:grid;place-items:center;padding:16px;background:rgba(43,29,20,.55)">
+        <div style="max-width:440px;background:#fbf6ee;color:#2b1d14;border:3px solid #2b1d14;border-radius:18px;box-shadow:6px 6px 0 #2b1d14;padding:24px;font-family:inherit">
+          <h2 style="margin:0 0 8px">No encontramos el servidor</h2>
+          <p style="margin:0 0 12px">${archivo
+            ? "Abriste el archivo directo. La app ahora necesita el servidor de QHDC!"
+            : "El servidor de QHDC! no responde o no puede conectarse a MySQL."}</p>
+          <ol style="margin:0 0 12px;padding-left:20px;line-height:1.6;list-style:decimal">
+            <li>Abre una terminal en la carpeta <b>backend</b></li>
+            <li>Ejecuta <code>npm install</code> (solo la primera vez)</li>
+            <li>Ejecuta <code>npm start</code></li>
+            <li>Entra a <a href="http://localhost:3000">http://localhost:3000</a></li>
+          </ol>
+          <button type="button" onclick="location.reload()" style="font:inherit;font-weight:700;padding:10px 16px;border:3px solid #2b1d14;border-radius:12px;background:#e8562a;color:#fff;cursor:pointer">Reintentar</button>
+        </div>
+      </div>`);
+  }
+
+  // Carga, en orden, los scripts de la página (app.js, inventario.js...)
+  function cargarScriptsDePagina() {
+    const etiquetas = [...document.querySelectorAll("script[data-qhdc-src]")];
+    let restantes = etiquetas.length;
+    const terminar = () => { if (typeof Efectos !== "undefined") Efectos.escalonar(); };
+    if (!restantes) return terminar();
+    etiquetas.forEach((et) => {
+      const s = document.createElement("script");
+      s.src = et.dataset.qhdcSrc;
+      s.async = false; // respeta el orden
+      s.onload = s.onerror = () => { if (--restantes === 0) terminar(); };
+      document.body.appendChild(s);
+    });
+  }
+
+  const domListo = new Promise((ok) => {
+    if (document.readyState !== "loading") ok();
+    else document.addEventListener("DOMContentLoaded", ok, { once: true });
+  });
+
+  const listo = (async () => {
+    try {
+      const e = await pedir("GET", "/estado");
+      aplicarEstado(e);
+      aplicarPreferencias(e.preferencias);
+    } catch (e) {
+      if (e.estado !== 401) throw e; // 401 = no hay sesión (login y registro lo esperan)
+    }
+    escucharPreferencias();
+  })();
+
+  Promise.all([listo, domListo]).then(cargarScriptsDePagina, async () => { await domListo; mostrarSinServidor(); });
 
   return {
     // catálogos
@@ -684,12 +749,14 @@ const QHDC = (() => {
     // alertas
     alertas, alertasPendientes, marcarLeida,
     // IA
-    consumirPrimero, predicciones, resumenIA,
+    consumirPrimero, predicciones, resumenIA, registrarConversacion,
     // compras
     listaCompras, marcarComprado, agregarExtra, eliminarExtra, finalizarCompra,
     // recetas y cámara
-    recetasSugeridas, detectarAlimentos, agregarDesdeCamara, escaneos,
+    recetasSugeridas, terminarReceta, detectarAlimentos, agregarDesdeCamara, escaneos,
     // sesión
     iniciarSesion, registrar, sesionActual, cerrarSesion, reiniciar, perfiles, entrarComoPerfil,
+    // servidor
+    listo, sincronizar,
   };
 })();
