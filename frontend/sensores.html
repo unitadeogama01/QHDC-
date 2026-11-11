@@ -59,14 +59,64 @@
       </div>
       <div class="modal-cuerpo">
         <ol class="pasos-vincular">
-          <li><span class="prod-icono ico-mostaza"><i class="fa-solid fa-plug"></i></span><div><strong>Conéctalo</strong><small>Enchufa el ESP32 y colócalo en su lugar.</small></div></li>
-          <li><span class="prod-icono ico-petroleo"><i class="fa-solid fa-wifi"></i></span><div><strong>Únelo a tu WiFi</strong><small>Usa la misma red de tu casa.</small></div></li>
-          <li><span class="prod-icono ico-oliva"><i class="fa-solid fa-key"></i></span><div><strong>Escribe esta clave</strong><small>Así sabremos que es tuyo.</small></div></li>
+          <li><span class="prod-icono ico-mostaza"><i class="fa-solid fa-plug"></i></span><div><strong>Conéctalo</strong><small>Enchufa el ESP32 por USB y colócalo en su lugar.</small></div></li>
+          <li><span class="prod-icono ico-petroleo"><i class="fa-solid fa-wifi"></i></span><div><strong>Únelo a tu WiFi</strong><small>Usa la misma red de tu casa (escríbela en config.h del firmware).</small></div></li>
+          <li><span class="prod-icono ico-oliva"><i class="fa-solid fa-key"></i></span><div><strong>Escribe su identificador y su clave</strong><small>Van en config.h. La clave solo se muestra una vez.</small></div></li>
         </ol>
-        <div class="clave">
+        <div class="campo" id="vincularForm">
+          <label for="nombreNuevo">¿Cómo se llamará?</label>
+          <input class="control" id="nombreNuevo" maxlength="100" value="Báscula de la despensa" autocomplete="off">
+        </div>
+        <div class="clave oculto" id="claveCaja">
           <code id="claveNueva"></code>
           <button class="btn btn-sm" id="btnCopiar" type="button" data-sonido="ninguno"><i class="fa-solid fa-copy"></i> Copiar</button>
         </div>
+      </div>
+      <div class="modal-pie">
+        <button type="button" class="btn btn-principal" id="btnCrearDispositivo" data-sonido="ninguno"><i class="fa-solid fa-key"></i> Crear clave</button>
+        <button type="button" class="btn btn-principal oculto" id="btnListoVincular" data-cerrar>Listo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calibrar báscula (celda de carga + HX711) -->
+  <div class="modal" id="modalCalibrar" aria-hidden="true" role="dialog" aria-labelledby="tituloCalibrar">
+    <div class="modal-caja">
+      <div class="modal-cab">
+        <h2 id="tituloCalibrar"><i class="fa-solid fa-sliders"></i> Calibrar báscula</h2>
+        <button type="button" class="btn-icono con-borde" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-cuerpo">
+        <div class="campo">
+          <label for="calAlimento">¿Qué alimento está sobre la báscula?</label>
+          <div class="fila">
+            <select class="control" id="calAlimento" style="flex:1"></select>
+            <button class="btn btn-sm" id="calGuardarAlimento" type="button"><i class="fa-solid fa-check"></i> Guardar</button>
+          </div>
+          <small>Solo alimentos en g, kg o piezas: la báscula mide gramos.</small>
+        </div>
+        <div class="campo oculto" id="calCampoPieza">
+          <label for="calPesoPieza">¿Cuánto pesa una pieza? (g)</label>
+          <input class="control" id="calPesoPieza" type="number" min="0.1" step="any" inputmode="decimal" placeholder="Ej. 60">
+          <small>Sin este dato no se pueden convertir gramos en piezas.</small>
+        </div>
+        <ol class="pasos-vincular">
+          <li><span class="prod-icono ico-mostaza"><i class="fa-solid fa-arrows-down-to-line"></i></span>
+            <div style="flex:1"><strong>1. Poner en cero</strong><small>Deja solo el frasco vacío sobre la báscula, sin tocarla.</small></div>
+            <button class="btn btn-sm" id="calTara" type="button" data-sonido="ninguno">Poner en cero</button></li>
+          <li><span class="prod-icono ico-petroleo"><i class="fa-solid fa-weight-hanging"></i></span>
+            <div style="flex:1"><strong>2. Peso conocido</strong><small>Pon dentro algo de peso exacto (p. ej. un paquete de 500 g).</small></div></li>
+        </ol>
+        <div class="campos-2">
+          <div class="campo">
+            <label for="calPeso">Peso de referencia (g)</label>
+            <input class="control" id="calPeso" type="number" min="10" step="any" value="500" inputmode="decimal">
+          </div>
+          <div class="campo" style="justify-content:flex-end">
+            <button class="btn" id="calFactor" type="button" data-sonido="ninguno"><i class="fa-solid fa-scale-balanced"></i> Calibrar</button>
+          </div>
+        </div>
+        <p class="texto-suave" id="calEstado" aria-live="polite"></p>
       </div>
       <div class="modal-pie">
         <button type="button" class="btn btn-principal" data-cerrar>Listo</button>
