@@ -4,6 +4,7 @@ node_modules/
 # Base de datos local, fotos subidas y registros (cuando exista el backend)
 backend/data/
 backend/uploads/
+backend/almacen/
 *.log
 
 # Configuración local
@@ -14,3 +15,9 @@ backend/uploads/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Configuración del ESP32 con WiFi y clave del dispositivo
+firmware/**/config.h
+
+# Resultados de cada corrida de la prueba de carga (el resumen va en docs/rendimiento.md)
+backend/pruebas/rendimiento/resultados/

@@ -270,7 +270,9 @@ function abrirFormulario(p, nombre = "") {
   $("#errorProducto").classList.add("oculto");
   $("#tituloModal").textContent = p ? `Editar ${p.nombre.toLowerCase()}` : "Agregar alimento";
   $("#sugerencias").classList.toggle("oculto", !!p);
-  const v = p || { id: "", nombre, categoria: QHDC.CATEGORIAS[0], ubicacion: "Refrigerador", unidad: "pz", caducidad: QHDC.enDias(7), aviso: 3, icono: "fa-box-open" };
+  const v = p || { id: "", nombre, categoria: QHDC.CATEGORIAS[0], ubicacion: "Refrigerador", unidad: "pz", caducidad: QHDC.enDias(7), aviso: 3, minimo: 30, icono: "fa-box-open" };
+  // El mínimo se acerca a la opción más cercana de la lista (0, 10 … 50 %)
+  form.elements.minimo.value = String(Math.min(50, Math.round((v.minimo ?? 30) / 10) * 10));
   ["id", "nombre", "categoria", "ubicacion", "cantidad", "unidad", "capacidad", "caducidad", "aviso", "precio"].forEach((k) => {
     if (v[k] !== undefined) form.elements[k].value = v[k];
   });
