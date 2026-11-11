@@ -50,10 +50,7 @@
 
             <div class="controles" id="ctrlInicio">
               <label class="btn btn-lg" for="archivo"><i class="fa-solid fa-image"></i> Subir foto</label>
-              <!-- Galería o archivos (sin capture: en el celular deja elegir fotos guardadas) -->
-              <input type="file" id="archivo" accept="image/*" class="sr-only">
-              <!-- Cámara nativa del teléfono: se usa si el navegador no permite la cámara en vivo -->
-              <input type="file" id="archivoCamara" accept="image/*" capture="environment" class="sr-only" tabindex="-1" aria-hidden="true">
+              <input type="file" id="archivo" accept="image/*" capture="environment" class="sr-only">
               <button class="btn btn-lg btn-principal" id="btnCamara" type="button"><i class="fa-solid fa-camera"></i> Abrir cámara</button>
             </div>
             <div class="controles oculto" id="ctrlCamara">

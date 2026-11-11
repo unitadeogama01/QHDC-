@@ -1,6 +1,6 @@
 /* ============================================================
    QHDC! — LISTA DEL SÚPER (lista-compras.html)
-   La lista es una tarjeta de la app (sin precios ni totales).
+   La lista se ve como un ticket de supermercado.
    ============================================================ */
 
 .compras-layout { display: grid; grid-template-columns: minmax(0, 560px) 1fr; gap: 28px; align-items: start; justify-content: center; }
@@ -10,10 +10,19 @@
   position: relative;
   background: var(--superficie);
   border: 2px solid var(--tinta);
-  border-radius: var(--radio);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
   padding: 22px 24px 26px;
   box-shadow: var(--sombra-dura);
   font-variant-numeric: tabular-nums;
+}
+/* Orilla de papel cortado */
+.ticket::after {
+  content: ""; position: absolute; left: -2px; right: -2px; bottom: -14px; height: 16px;
+  background:
+    linear-gradient(-45deg, transparent 8px, var(--superficie) 8px) 0 0 / 16px 16px repeat-x,
+    linear-gradient(45deg, transparent 8px, var(--superficie) 8px) 0 0 / 16px 16px repeat-x;
+  filter: drop-shadow(2px 0 0 var(--tinta)) drop-shadow(-2px 0 0 var(--tinta)) drop-shadow(0 2px 0 var(--tinta));
 }
 .ticket.imprimiendo { animation: imprimir 0.9s ease-in forwards; }
 @keyframes imprimir { 60% { transform: translateY(-14px) rotate(-1deg); } 100% { transform: translateY(-60px) rotate(-3deg); opacity: 0; } }
@@ -36,7 +45,7 @@
 .grupo h3 .badge { margin-left: auto; }
 
 .renglon {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; align-items: center;
   padding: 10px 2px;
   border-bottom: 1px dashed var(--borde);
 }
@@ -49,8 +58,9 @@
   transform: scaleX(0); transform-origin: left; transition: transform 0.35s ease;
 }
 .renglon.comprado .nombre::after { transform: scaleX(1); }
-.renglon.comprado .info { opacity: 0.5; }
+.renglon.comprado .info, .renglon.comprado .precio { opacity: 0.5; }
 .renglon small { display: block; color: var(--texto-suave); font-size: 0.8rem; font-weight: 700; }
+.renglon .precio { font-weight: 900; }
 .renglon .quitar { width: 30px; height: 30px; }
 .renglon.sale { animation: salir 0.3s ease forwards; }
 @keyframes salir { to { opacity: 0; transform: translateX(30px); } }
@@ -69,6 +79,14 @@
 
 .ticket-pie { margin-top: 18px; padding-top: 12px; border-top: 2px dashed var(--tinta); }
 .ticket-fila { display: flex; justify-content: space-between; font-weight: 700; color: var(--texto-suave); padding: 3px 0; }
+.ticket-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; font-weight: 900; letter-spacing: 0.05em; }
+.ticket-total strong { font-family: var(--letra-titulo); font-size: 2rem; letter-spacing: 0; }
+.codigo {
+  height: 46px; margin: 18px auto 6px; width: 70%;
+  background: repeating-linear-gradient(90deg, var(--tinta) 0 2px, transparent 2px 4px, var(--tinta) 4px 7px, transparent 7px 9px, var(--tinta) 9px 10px, transparent 10px 13px);
+}
+[data-tema="oscuro"] .codigo { background: repeating-linear-gradient(90deg, var(--texto) 0 2px, transparent 2px 4px, var(--texto) 4px 7px, transparent 7px 9px, var(--texto) 9px 10px, transparent 10px 13px); }
+.gracias { text-align: center; font-weight: 800; font-size: 0.85rem; color: var(--texto-suave); }
 
 .ticket-botones { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 34px; }
 

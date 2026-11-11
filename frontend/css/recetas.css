@@ -107,19 +107,3 @@
   .barra-recetas .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; width: 100%; }
   .barra-recetas .chip { flex-shrink: 0; }
 }
-
-/* ---------- Crear receta ---------- */
-#modosCrear { margin-bottom: 16px; }
-.elegir { max-height: 190px; overflow-y: auto; padding: 2px; }
-.elegir .chip .prod-icono { width: 22px; height: 22px; font-size: 0.7rem; border-radius: 7px; }
-.vista-foto { display: block; width: 100%; max-height: 220px; object-fit: cover; margin-top: 10px; border: 2px solid var(--tinta); border-radius: 14px; }
-.ing-editar { display: grid; gap: 8px; margin-bottom: 8px; }
-.ing-editar li { display: grid; grid-template-columns: 1.4fr 1fr auto auto; gap: 8px; align-items: center; }
-.ing-editar .control { padding: 7px 10px; font-size: 0.9rem; }
-.ing-editar .badge { white-space: nowrap; }
-#formReceta textarea.control { resize: vertical; min-height: 120px; font-family: inherit; }
-#btnBorrarReceta { margin-right: auto; }
-@media (max-width: 560px) {
-  .ing-editar li { grid-template-columns: 1fr 1fr auto; }
-  .ing-editar .badge { display: none; }
-}

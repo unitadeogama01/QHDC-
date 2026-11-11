@@ -1,0 +1,38 @@
+{
+  "name": "qhdc-backend",
+  "version": "1.0.0",
+  "description": "QHDC! ¿Qué Hay de Comer? — Servidor Express + MySQL (ARK SYSTEMS)",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "simulador": "node src/modulos/iot/simulador.js",
+    "db:migrar": "node scripts/migrar.js",
+    "datos:vaciar": "node scripts/vaciar-hogar.js",
+    "publico": "node scripts/publico.js",
+    "test": "node --test --test-concurrency=4 \"pruebas/**/*.test.js\"",
+    "test:unitarias": "node --test \"pruebas/unitarias/*.test.js\" \"pruebas/frontend/*.test.js\"",
+    "test:api": "node --test --test-concurrency=4 \"pruebas/api/*.test.js\"",
+    "test:cobertura": "node --test --test-concurrency=4 --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/modulos/iot/simulador.js\" \"pruebas/**/*.test.js\"",
+    "rendimiento": "node pruebas/rendimiento/carga.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "aedes": "^1.2.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.3",
+    "google-auth-library": "^11.3.3",
+    "helmet": "^8.3.0",
+    "mqtt": "^5.16.1",
+    "multer": "^2.5.0",
+    "mysql2": "^3.11.0",
+    "sharp": "^0.35.5"
+  }
+}

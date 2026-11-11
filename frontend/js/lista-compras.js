@@ -3,7 +3,7 @@
 //  HU-07 Lista de compras automática
 // ============================================================
 
-const { $, $$, esc, iconoProducto, toast } = UI;
+const { $, $$, esc, iconoProducto, toast, dinero } = UI;
 const GRUPOS = [
   { id: "alta", titulo: "Urgente", icono: "fa-fire" },
   { id: "media", titulo: "Pronto", icono: "fa-clock" },
@@ -21,6 +21,7 @@ function renglon(i) {
         <span class="nombre">${esc(i.nombre)}</span>
         <small><i class="fa-solid ${i.icono}"></i> ${esc(i.extra ? i.cantidad : `${i.cantidad} · ${i.motivo}`)}</small>
       </div>
+      <span class="precio">${dinero(i.precio)}</span>
       ${i.extra ? `<button class="btn-icono quitar" type="button" data-quitar aria-label="Quitar ${esc(i.nombre)}" data-sonido="ninguno"><i class="fa-solid fa-xmark"></i></button>` : "<span></span>"}
     </div>`;
 }
@@ -37,13 +38,12 @@ function dibujar(animar = false) {
 
   const marcados = items.filter((i) => i.comprado);
   const pct = items.length ? Math.round((marcados.length / items.length) * 100) : 0;
-  $("#numArticulos").textContent = items.length - marcados.length;
-  $("#enCarrito").textContent = marcados.length;
+  $("#numArticulos").textContent = items.length;
+  $("#enCarrito").textContent = dinero(marcados.reduce((s, i) => s + i.precio, 0));
+  Efectos.contar($("#total"), items.reduce((s, i) => s + i.precio, 0), { duracion: 600, prefijo: "$" });
   $("#anilloCarrito").style.setProperty("--valor", pct);
   $("#pctCarrito").textContent = `${pct}%`;
-  $("#textoCarrito").textContent = !items.length ? "Nada que comprar."
-    : (pct === 100 ? "¡Todo en el carrito!" : `Te faltan ${items.length - marcados.length} de ${items.length} cosas.`)
-      + (marcados.length ? " Al terminar, toca «Terminé de comprar» y lo marcado pasa a tu alacena." : "");
+  $("#textoCarrito").textContent = !items.length ? "Nada que comprar." : pct === 100 ? "¡Todo listo! Ya puedes pagar." : `Te faltan ${items.length - marcados.length} de ${items.length} cosas.`;
   $("#btnTerminar").disabled = marcados.length === 0;
 
   $("#yaTienes").innerHTML = suficiente.map((p) => `<a class="badge badge-ok" href="inventario.html?id=${p.id}"><i class="fa-solid ${p.icono}"></i> ${esc(p.nombre)} · ${p.estado.pct}%</a>`).join("")
@@ -111,8 +111,9 @@ UI.registrarRecorrido([
   { sel: "#grupos .grupo h3", titulo: "Por prioridad", texto: "Primero lo urgente, luego lo que necesitarás pronto y al final lo que tú anotaste." },
   { sel: "#grupos .renglon .casilla", titulo: "Al carrito", texto: "Mientras compras, toca la casilla y el producto se tacha." },
   { sel: "#grupos .renglon .info", titulo: "¿Por qué está aquí?", texto: "Debajo de cada producto te decimos cuánto comprar y por qué lo agregamos." },
+  { sel: "#grupos .renglon .precio", titulo: "Precio aproximado", texto: "Lo que suele costar, para que sepas cuánto llevar." },
   { sel: "#grupos .renglon .quitar", titulo: "Quitar", texto: "Lo que tú anotaste se puede quitar con esta X." },
-  { sel: ".ticket-pie", titulo: "Tu avance", texto: "Cuántas cosas te faltan por comprar y cuántas ya llevas en el carrito." },
+  { sel: ".ticket-pie", titulo: "Totales", texto: "Cuántos artículos son, cuánto llevas en el carrito y el total aproximado." },
   { sel: "#btnTerminar", titulo: "Terminé de comprar", texto: "Al tocarlo, lo que marcaste se rellena solo en tu alacena." },
   { sel: "#btnImprimir", titulo: "Imprimir", texto: "Si prefieres llevarla en papel, imprime solo la lista." },
   { sel: ".carrito", titulo: "Tu avance", texto: "El anillo se llena conforme marcas productos." },

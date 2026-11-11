@@ -92,10 +92,7 @@
 .detectado .interruptor .riel::after { width: 16px; height: 16px; }
 .detectado .interruptor input:checked + .riel::after { transform: translateX(18px); }
 .detectado strong { display: block; line-height: 1.2; }
-/* El nombre se puede corregir: mismo control compacto de .ajustes, con peso de título */
-.detectado .nombre-detectado { width: 100%; padding: 6px 10px; font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
-.confianza .badge { margin-left: 4px; }
-.confianza { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 800; color: var(--texto-suave); }
+.confianza { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 800; color: var(--texto-suave); }
 .confianza .barra { width: 70px; height: 7px; }
 .ajustes { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
 .paso-cant { display: inline-flex; align-items: center; gap: 6px; padding: 3px; border: 2px solid var(--borde); border-radius: 12px; }
