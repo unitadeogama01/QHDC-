@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recetas — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/recetas.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="recetas">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Recetas</h1>
+          <p>Ideas con lo que ya tienes en casa</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <section class="barra-recetas">
+          <div class="chips" id="filtros" role="group" aria-label="Filtrar recetas">
+            <button class="chip" type="button" aria-pressed="true" data-filtro="todas">Todas</button>
+            <button class="chip" type="button" aria-pressed="false" data-filtro="urgentes"><i class="fa-solid fa-hourglass-half"></i> Salvan comida</button>
+            <button class="chip" type="button" aria-pressed="false" data-filtro="completas"><i class="fa-solid fa-circle-check"></i> Tengo todo</button>
+            <button class="chip" type="button" aria-pressed="false" data-filtro="rapidas"><i class="fa-solid fa-bolt"></i> En 20 min</button>
+          </div>
+          <div class="fila">
+            <div class="control-icono buscador">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input class="control" type="search" id="buscar" placeholder="Receta o ingrediente…" aria-label="Buscar receta o ingrediente">
+            </div>
+            <button class="btn" id="btnSorpresa" type="button" data-sonido="ninguno"><i class="fa-solid fa-dice"></i> Sorpréndeme</button>
+            <button class="btn btn-principal" id="btnCrear" type="button"><i class="fa-solid fa-plus"></i> Crear receta</button>
+          </div>
+        </section>
+
+        <section class="recetas" id="recetas"></section>
+        <div class="vacio oculto" id="sinRecetas">
+          <div class="ilustra"><i class="fa-solid fa-utensils"></i></div>
+          <strong id="sinRecetasTitulo">Ninguna receta coincide</strong>
+          <p id="sinRecetasTexto">Prueba con otro ingrediente o quita el filtro.</p>
+          <button class="btn btn-principal oculto" id="btnCrearVacio" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Crear mi primera receta</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ========== Detalle ========== -->
+  <div class="modal" id="modalReceta" aria-hidden="true" role="dialog" aria-labelledby="tituloReceta">
+    <div class="modal-caja modal-receta">
+      <div class="portada" id="portada"></div>
+      <div class="modal-cuerpo">
+        <h2 id="tituloReceta"></h2>
+        <div class="meta" id="metaReceta"></div>
+        <h3 class="subtitulo"><i class="fa-solid fa-basket-shopping"></i> Ingredientes</h3>
+        <ul class="ingredientes" id="ingredientes"></ul>
+        <h3 class="subtitulo"><i class="fa-solid fa-list-ol"></i> Pasos</h3>
+        <ol class="pasos" id="pasos"></ol>
+      </div>
+      <div class="modal-pie">
+        <button class="btn-icono con-borde" id="btnBorrarReceta" type="button" aria-label="Borrar receta" title="Borrar receta" data-sonido="ninguno"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn" id="btnFaltantes" type="button" data-sonido="ninguno"><i class="fa-solid fa-cart-plus"></i> Anotar lo que falta</button>
+        <button class="btn btn-principal" id="btnCocinar" type="button"><i class="fa-solid fa-fire-burner"></i> Empezar a cocinar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Crear receta ========== -->
+  <div class="modal" id="modalCrear" aria-hidden="true" role="dialog" aria-labelledby="tituloCrear">
+    <div class="modal-caja">
+      <div class="modal-cab">
+        <h2 id="tituloCrear"><i class="fa-solid fa-wand-magic-sparkles"></i> Crear receta</h2>
+        <button type="button" class="btn-icono con-borde" data-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-cuerpo">
+        <div class="chips" id="modosCrear" role="group" aria-label="Cómo crear la receta">
+          <button class="chip" type="button" aria-pressed="true" data-modo="ingredientes"><i class="fa-solid fa-basket-shopping"></i> Con mis ingredientes</button>
+          <button class="chip" type="button" aria-pressed="false" data-modo="foto"><i class="fa-solid fa-camera"></i> Con una foto</button>
+          <button class="chip" type="button" aria-pressed="false" data-modo="manual"><i class="fa-solid fa-pen"></i> Escribirla yo</button>
+        </div>
+
+        <!-- Paso 1: pedirle una receta a la IA -->
+        <div id="pedirIA">
+          <div class="campo" id="campoElegir">
+            <span class="etq" id="etqElegir">Elige los ingredientes de tu alacena</span>
+            <div class="chips elegir" id="elegirIngredientes" role="group" aria-labelledby="etqElegir"></div>
+            <small id="sinAlacena" class="oculto">Tu alacena está vacía: agrega alimentos o usa una foto.</small>
+          </div>
+          <div class="campo oculto" id="campoFoto">
+            <label class="btn" for="fotoReceta"><i class="fa-solid fa-image"></i> Elegir o tomar foto</label>
+            <input type="file" id="fotoReceta" accept="image/*" class="sr-only">
+            <img id="vistaFotoReceta" class="vista-foto oculto" alt="Foto de los ingredientes">
+            <small>Una foto de tus ingredientes (por ejemplo, sobre la mesa). No se guarda.</small>
+          </div>
+          <div class="campos-2">
+            <div class="campo">
+              <label for="indicaciones">¿Algo más? (opcional)</label>
+              <input class="control" id="indicaciones" maxlength="300" placeholder="Ej. algo rápido, sin horno">
+            </div>
+            <div class="campo">
+              <label for="porcionesIA">Porciones</label>
+              <select class="control" id="porcionesIA"><option value="">Las que sugiera</option><option>1</option><option>2</option><option>4</option><option>6</option></select>
+            </div>
+          </div>
+          <button class="btn btn-principal btn-bloque" id="btnGenerar" type="button" data-sonido="ninguno"><i class="fa-solid fa-wand-magic-sparkles"></i> Proponer receta</button>
+        </div>
+
+        <!-- Paso 2: revisar y editar (borrador de la IA o receta escrita a mano) -->
+        <form id="formReceta" class="oculto" novalidate>
+          <p class="texto-suave texto-chico" id="notaBorrador"></p>
+          <div class="campo">
+            <label for="rNombre">Nombre</label>
+            <input class="control" id="rNombre" maxlength="150" required>
+          </div>
+          <div class="campos-3">
+            <div class="campo"><label for="rTiempo">Minutos</label><input class="control" id="rTiempo" type="number" min="1" max="600" value="30"></div>
+            <div class="campo"><label for="rPorciones">Porciones</label><input class="control" id="rPorciones" type="number" min="1" max="20" value="2"></div>
+            <div class="campo"><label for="rDificultad">Dificultad</label>
+              <select class="control" id="rDificultad"><option value="muy_facil">Muy fácil</option><option value="facil" selected>Fácil</option><option value="media">Media</option><option value="dificil">Difícil</option></select></div>
+          </div>
+          <div class="campo">
+            <span class="etq">Ingredientes</span>
+            <ul class="ing-editar" id="rIngredientes"></ul>
+            <button class="btn btn-sm" type="button" id="btnAgregarIng"><i class="fa-solid fa-plus"></i> Agregar ingrediente</button>
+          </div>
+          <div class="campo">
+            <label for="rPasos">Pasos (uno por renglón)</label>
+            <textarea class="control" id="rPasos" rows="6" placeholder="Lava y pica las verduras.&#10;Calienta el aceite…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-pie">
+        <button type="button" class="btn oculto" id="btnOtraIdea" data-sonido="ninguno"><i class="fa-solid fa-rotate"></i> Otra idea</button>
+        <button type="button" class="btn btn-principal oculto" id="btnGuardarReceta" data-sonido="ninguno"><i class="fa-solid fa-floppy-disk"></i> Guardar receta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Modo cocina (paso a paso) ========== -->
+  <div class="modo-cocina oculto" id="modoCocina" role="dialog" aria-modal="true" aria-labelledby="mcTitulo">
+    <header class="mc-cab">
+      <div>
+        <small id="mcReceta"></small>
+        <strong id="mcTitulo">Paso 1</strong>
+      </div>
+      <button class="btn-icono con-borde" id="mcCerrar" type="button" aria-label="Salir del modo cocina"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+    <div class="mc-progreso" id="mcProgreso"></div>
+    <div class="mc-paso" id="mcPaso" aria-live="polite"></div>
+    <div class="mc-timer oculto" id="mcTimer">
+      <button class="btn btn-mostaza" id="mcTimerBtn" type="button" data-sonido="ninguno"><i class="fa-solid fa-stopwatch"></i> <span>Iniciar temporizador</span></button>
+    </div>
+    <footer class="mc-pie">
+      <button class="btn btn-lg" id="mcAtras" type="button"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
+      <button class="btn btn-lg btn-principal" id="mcSiguiente" type="button">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+    </footer>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script data-qhdc-src="js/app.js"></script>
+  <script data-qhdc-src="js/recetas.js"></script>
+</body>
+</html>
