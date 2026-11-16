@@ -1,0 +1,121 @@
+/* ============================================================
+   QHDC! — DISPOSITIVOS (sensores.html)
+   ============================================================ */
+
+.franja-vivo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px; margin-bottom: 22px; }
+.disp-layout { display: grid; grid-template-columns: 1fr 330px; gap: 22px; align-items: start; }
+.dispositivos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+
+/* ---------- Tarjeta de dispositivo ---------- */
+.aparato { display: flex; flex-direction: column; gap: 14px; padding: 0; overflow: hidden; }
+.aparato-cab {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--superficie-2);
+  border-bottom: 2px solid var(--tinta);
+}
+.aparato-cab h3 { font-size: 1.08rem; line-height: 1.2; }
+.aparato-cab small { color: var(--texto-suave); font-weight: 700; font-size: 0.8rem; }
+.aparato-cab > div { flex: 1; min-width: 0; }
+.led { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--tinta); background: var(--oliva); flex-shrink: 0; }
+.led.parpadea { animation: led 0.35s ease; }
+@keyframes led { 50% { background: #c9f59a; box-shadow: 0 0 12px #9be35a; } }
+.aparato.apagado .led { background: var(--borde); }
+.aparato-cuerpo { padding: 0 18px; display: flex; flex-direction: column; gap: 12px; }
+.aparato-pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-top: 2px dashed var(--borde); margin-top: auto; flex-wrap: wrap; }
+
+/* Señal y batería */
+.metricas { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.82rem; font-weight: 800; color: var(--texto-suave); }
+.senal { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; margin-right: 4px; vertical-align: -1px; }
+.senal i { width: 4px; border-radius: 2px; background: var(--borde); }
+.senal i:nth-child(1) { height: 25%; } .senal i:nth-child(2) { height: 50%; } .senal i:nth-child(3) { height: 75%; } .senal i:nth-child(4) { height: 100%; }
+.senal i.on { background: var(--oliva); }
+.bateria-baja { color: var(--peligro-texto); }
+
+/* Báscula: productos en la plataforma */
+.plataforma { display: grid; gap: 10px; }
+.pesado { display: flex; align-items: center; gap: 12px; padding: 10px; border: 2px solid var(--borde); border-radius: 16px; }
+.pesado .info { flex: 1; min-width: 0; }
+.pesado strong { display: block; }
+.pesado .peso { font-family: var(--letra-titulo); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; line-height: 1.1; }
+.pesado .delta { display: block; font-size: 0.75rem; font-weight: 900; text-align: right; min-height: 1em; }
+.delta.baja { color: var(--peligro-texto); }
+.delta.sube { color: var(--ok-texto); }
+.pesado.cambio { animation: brillo 0.6s ease; }
+@keyframes brillo { 40% { border-color: var(--mostaza); background: var(--mostaza-claro); } }
+
+/* Sensor de frescura: medidor semicircular */
+.medidor-gas { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.arco {
+  --p: 0.3;
+  position: relative; width: 210px; height: 105px; overflow: hidden;
+}
+.arco::before {
+  content: ""; position: absolute; inset: 0 0 -100% 0;
+  border-radius: 50%;
+  border: 2px solid var(--tinta);
+  background: conic-gradient(from -90deg, var(--oliva) 0 60deg, var(--mostaza) 60deg 120deg, var(--tomate) 120deg 180deg, transparent 180deg);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 55%);
+          mask: radial-gradient(circle, transparent 54%, #000 55%);
+}
+.aguja {
+  position: absolute; left: 50%; bottom: 0;
+  width: 4px; height: 88px; margin-left: -2px;
+  background: var(--tinta); border-radius: 4px;
+  transform-origin: bottom center;
+  transform: rotate(calc(-90deg + var(--p) * 180deg));
+  transition: transform 1s var(--rebote);
+}
+.aguja::after { content: ""; position: absolute; bottom: -9px; left: -7px; width: 18px; height: 18px; border-radius: 50%; background: var(--tinta); }
+.lectura-gas { font-family: var(--letra-titulo); font-size: 1.6rem; font-weight: 700; margin-top: 10px; }
+.estado-aire { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-weight: 800; border: 2px solid var(--tinta); }
+.estado-aire.ok { background: var(--ok-fondo); color: var(--ok-texto); }
+.estado-aire.aviso { background: var(--aviso-fondo); color: var(--aviso-texto); }
+.estado-aire.peligro { background: var(--peligro-fondo); color: var(--peligro-texto); animation: sacudir 0.4s 2; }
+.ambiente { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.ambiente div { padding: 10px; border: 2px dashed var(--borde); border-radius: 14px; text-align: center; }
+.ambiente strong { display: block; font-family: var(--letra-titulo); font-size: 1.25rem; }
+.ambiente small { color: var(--texto-suave); font-weight: 800; }
+
+/* Termómetro */
+.termometro { display: flex; align-items: center; gap: 18px; padding: 6px 0; }
+.tubo { position: relative; width: 26px; height: 120px; border: 2px solid var(--tinta); border-radius: 14px; background: var(--superficie-2); overflow: hidden; }
+.tubo span { position: absolute; left: 0; right: 0; bottom: 0; background: var(--petroleo); transition: height 1s var(--rebote); }
+.termometro strong { font-family: var(--letra-titulo); font-size: 2.4rem; }
+
+/* Girar icono mientras conecta */
+.girando i { animation: girar 0.9s linear infinite; }
+
+/* ---------- Registro de actividad ---------- */
+.actividad { position: sticky; top: 96px; }
+.registro { display: grid; gap: 8px; max-height: 560px; overflow-y: auto; }
+.registro li {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+  padding: 8px 10px; border-radius: 12px; background: var(--superficie-2);
+  font-size: 0.86rem;
+}
+.registro li.nuevo { animation: entrarRegistro 0.45s var(--rebote); }
+@keyframes entrarRegistro { from { opacity: 0; transform: translateX(-20px); background: var(--mostaza-claro); } }
+.registro time { font-variant-numeric: tabular-nums; color: var(--texto-suave); font-weight: 700; font-size: 0.78rem; }
+.registro b { font-variant-numeric: tabular-nums; }
+
+/* ---------- Vincular ---------- */
+.pasos-vincular { display: grid; gap: 12px; margin-bottom: 18px; }
+.pasos-vincular li { display: flex; align-items: center; gap: 12px; }
+.pasos-vincular strong { display: block; }
+.pasos-vincular small { color: var(--texto-suave); }
+.clave { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 2px dashed var(--tinta); border-radius: 14px; background: var(--mostaza-claro); }
+.clave code { flex: 1; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.04em; }
+
+@media (max-width: 1250px) {
+  .disp-layout { grid-template-columns: 1fr; }
+  .actividad { position: static; }
+  .registro { max-height: 320px; }
+}
+@media (max-width: 800px) {
+  .dispositivos { grid-template-columns: 1fr; }
+  .franja-vivo .fila:last-child { width: 100%; }
+  .franja-vivo .btn { flex: 1; }
+}
+
+@media (max-width: 480px) { .ocultar-chico { display: none; } }

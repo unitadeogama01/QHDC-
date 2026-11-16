@@ -1,0 +1,6 @@
+# Finales de línea LF en el repositorio (Linux/Docker en Hostinger)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+# Los .cmd de Windows necesitan CRLF
+*.cmd text eol=crlf
