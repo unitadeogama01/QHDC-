@@ -89,8 +89,15 @@ let indiceGanadora = 0;
 
 function girarRuleta() {
   if (girando) return;
-  girando = true;
   const recetas = QHDC.recetasSugeridas();
+  if (!recetas.length) {
+    // Hogar sin recetas todavía: se invita a crear la primera
+    $("#ruletaNombre").textContent = "Aún no tienes recetas";
+    $("#ruletaDetalle").textContent = "Créalas en Recetas con tus ingredientes o una foto.";
+    $("#ruletaPista").innerHTML = '<a href="recetas.html"><b><u>Crear mi primera receta</u></b></a>';
+    return;
+  }
+  girando = true;
   const ganadora = recetas[indiceGanadora % recetas.length];
   indiceGanadora++;
   const plato = $("#ruletaPlato");

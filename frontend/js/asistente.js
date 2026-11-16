@@ -2,10 +2,10 @@
 //  QHDC! — Asistente (asistente.html)
 //  HU-05 Qué consumir primero · HU-06 Predicción de consumo
 //
-//  Conversación tipo chat. Las respuestas se arman con los datos
-//  de la cocina (QHDC) y cada pregunta queda guardada en la base
-//  (conversaciones_asistente). Para usar un modelo de IA real,
-//  solo se cambia la función responder().
+//  Conversación tipo chat. Las preguntas las responde la IA (Claude)
+//  desde el servidor, con los datos exactos de la cocina; el servidor
+//  guarda la conversación. Si la IA no está disponible, responder()
+//  arma la respuesta con reglas sobre los mismos datos.
 // ============================================================
 
 const { $, $$, esc, iconoProducto, badgeCaducidad } = UI;
@@ -56,6 +56,10 @@ function responderComprar() {
 
 function responderCocinar() {
   const r = QHDC.recetasSugeridas()[0];
+  if (!r) {
+    return `<p>Todavía no tienes recetas guardadas.</p>
+      <div class="fila"><a class="btn btn-sm btn-principal" href="recetas.html"><i class="fa-solid fa-wand-magic-sparkles"></i> Crear una receta</a></div>`;
+  }
   const urg = r.ingredientes.filter((i) => i.urgente).map((i) => i.nombre.toLowerCase());
   return `<p>Te recomiendo esta:</p>
     <div class="receta-msg">
@@ -95,13 +99,99 @@ function responder(texto) {
     <p>• qué usar primero · • qué comprar · • qué cocinar · • cuánto te dura un alimento (ej. «¿cuánto me dura la leche?»)</p>`;
 }
 
+// ============================================================
+//  RESPUESTAS CON IA (Claude, desde el servidor)
+//  El texto lo redacta la IA; las tarjetas (alimentos, recetas,
+//  disponibilidad de ingredientes) se arman con datos reales que el
+//  servidor ya validó.
+// ============================================================
+function textoAHtml(texto) {
+  return String(texto).split(/\n+/).map((l) => l.trim()).filter(Boolean)
+    .map((l) => (/^[-•*]\s+/.test(l) ? `<p>• ${esc(l.replace(/^[-•*]\s+/, ""))}</p>` : `<p>${esc(l)}</p>`)).join("");
+}
+
+function tarjetaRecetaNueva(r) {
+  const tengo = r.ingredientes.length - r.faltan;
+  return `
+    <div class="receta-msg">
+      <span class="prod-icono ico-oliva"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+      <div><strong>${esc(r.nombre)}</strong><br><small class="texto-suave">${r.tiempo} min · ${r.porciones} porciones · tienes ${tengo} de ${r.ingredientes.length} ingredientes</small></div>
+    </div>
+    ${listaCosas(r.ingredientes.map((i) => {
+      const p = i.alimentoId ? QHDC.producto(i.alimentoId) : null;
+      return `<li>${p ? iconoProducto(p) : `<span class="prod-icono"><i class="fa-solid ${i.basico ? "fa-jar" : "fa-basket-shopping"}"></i></span>`}
+        <span class="n">${esc(i.nombre)}${i.cantidad ? ` <small class="texto-suave">· ${esc(i.cantidad)}</small>` : ""}</span>
+        ${i.disponible ? '<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Tienes</span>' : '<span class="badge badge-peligro"><i class="fa-solid fa-xmark"></i> Falta</span>'}</li>`;
+    }))}
+    ${r.pasos.length ? `<details class="datos"><summary>Ver pasos</summary>${r.pasos.map((p, n) => `<p><b>${n + 1}.</b> ${esc(p)}</p>`).join("")}</details>` : ""}
+    ${r.faltan ? `<div class="fila"><button class="btn btn-sm btn-mostaza" type="button" data-anotar='${esc(JSON.stringify(r.ingredientes.filter((i) => !i.disponible).map((i) => [i.nombre, i.cantidad])))}'><i class="fa-solid fa-cart-plus"></i> Anotar lo que falta</button></div>` : ""}`;
+}
+
+function htmlRespuestaIA(r) {
+  let html = textoAHtml(r.respuesta);
+  const alimentos = r.alimentos.map((id) => QHDC.producto(id)).filter(Boolean);
+  if (alimentos.length) html += listaCosas(alimentos.map((p) => `<li>${iconoProducto(p)}<span class="n">${esc(p.nombre)}</span>${badgeCaducidad(p.estado)}</li>`));
+  const receta = r.recetaId ? QHDC.recetasSugeridas().find((x) => x.id === r.recetaId) : null;
+  if (receta) {
+    html += `<div class="receta-msg">
+        <span class="prod-icono ico-${receta.color}"><i class="fa-solid ${receta.icono}"></i></span>
+        <div><strong>${esc(receta.nombre)}</strong><br><small class="texto-suave">${receta.tiempo} min · tienes ${receta.ingredientes.length - receta.faltan} de ${receta.ingredientes.length} ingredientes</small></div>
+      </div>
+      <div class="fila"><a class="btn btn-sm btn-principal" href="recetas.html?id=${receta.id}"><i class="fa-solid fa-book-open"></i> Ver receta</a></div>`;
+  }
+  if (r.recetaNueva) html += tarjetaRecetaNueva(r.recetaNueva);
+  if (r.intencion === "comprar") html += `<div class="fila"><a class="btn btn-sm btn-mostaza" href="lista-compras.html"><i class="fa-solid fa-cart-shopping"></i> Abrir mi lista</a></div>`;
+  return html;
+}
+
+// "Anotar lo que falta" de una receta propuesta por la IA
+caja.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-anotar]");
+  if (!b) return;
+  const faltan = JSON.parse(b.dataset.anotar);
+  faltan.forEach(([nombre, cantidad]) => QHDC.agregarExtra(nombre, cantidad || "1", 0));
+  Sonido.exito();
+  b.disabled = true;
+  b.innerHTML = '<i class="fa-solid fa-check"></i> Anotado';
+  UI.toast(`Anotamos ${faltan.length} ${faltan.length === 1 ? "ingrediente" : "ingredientes"} en tu lista`, { icono: "fa-cart-plus" });
+});
+
+// Muestra "escribiendo…" mientras llega la respuesta
+function escribiendo(mostrar) {
+  const e = $("#escribiendo");
+  if (!mostrar) { if (e) e.remove(); return; }
+  if (e) return;
+  caja.insertAdjacentHTML("beforeend", `<div class="msg ia escribiendo" id="escribiendo"><span class="mini-robot"><i class="fa-solid fa-robot"></i></span><div class="burbuja" aria-label="Escribiendo"><span></span><span></span><span></span></div></div>`);
+  bajar();
+}
+
+let iaDisponible = true; // si el servidor no tiene IA, se usan las reglas sin volver a intentar
+let ocupado = false;
+
 async function preguntar(texto) {
-  if (!texto.trim()) return;
+  if (!texto.trim() || ocupado) return;
+  ocupado = true;
   Sonido.subir();
   mensajeYo(texto);
+  if (iaDisponible) {
+    escribiendo(true);
+    try {
+      const r = await QHDC.preguntarAsistente(texto);
+      escribiendo(false);
+      await mensajeIA(htmlRespuestaIA(r), 0);
+      ocupado = false;
+      return;
+    } catch (e) {
+      escribiendo(false);
+      if (e.estado === 503) iaDisponible = false; // no configurada: reglas desde ahora
+      else if (e.estado === 429) { await mensajeIA(`<p>${esc(e.message)}</p>`, 0); ocupado = false; return; }
+    }
+  }
+  // Respaldo: respuestas con reglas sobre los datos de la cocina
   const respuesta = responder(texto);
-  QHDC.registrarConversacion(texto, respuesta); // queda en el historial del asistente
+  QHDC.registrarConversacion(texto, respuesta);
   await mensajeIA(respuesta);
+  ocupado = false;
 }
 
 // ---------- Eventos ----------

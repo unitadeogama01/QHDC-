@@ -227,6 +227,7 @@ const QHDC = (() => {
       icono: info.icono || "fa-box-open",
       color: info.color || "cafe",
       aviso: Number(info.aviso) || 3,
+      minimo: Number.isFinite(Number(info.minimo)) && info.minimo !== "" ? Number(info.minimo) : 30, // % para ir a la lista del súper
     };
   }
 
@@ -360,11 +361,41 @@ const QHDC = (() => {
     return nuevas;
   }
 
-  function alternarSensor(id) {
-    const s = datos.sensores.find((x) => x.id === Number(id));
-    s.enLinea = !s.enLinea;
-    if (s.enLinea) enviar("POST", `/sensores/${s.id}/conectar`, {});
-    return s;
+  // Acciones reales sobre un dispositivo. Esperan la respuesta del servidor
+  // (y del ESP32) en lugar de suponer que salió bien.
+  async function accionSensor(metodo, ruta, cuerpo) {
+    try {
+      return await pedir(metodo, ruta, cuerpo);
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+      throw e;
+    }
+  }
+
+  /** "Reintentar conexión": reactiva el dispositivo y pregunta si está en línea. */
+  async function reconectarSensor(id) {
+    const r = await accionSensor("POST", `/sensores/${Number(id)}/conectar`, {});
+    await traerEnVivo();
+    return { ...datos.sensores.find((x) => x.id === Number(id)), enLinea: r.enLinea };
+  }
+
+  /** Calibración real del HX711: paso "tara" o "factor" (con peso de referencia en gramos). */
+  function calibrarBascula(id, paso, pesoReferencia) {
+    return accionSensor("POST", `/sensores/${Number(id)}/calibrar`, { paso, pesoReferencia });
+  }
+
+  /** Qué alimento está sobre la báscula (y cuánto pesa una pieza, si se mide en piezas). */
+  async function asignarAlimentoBascula(id, alimentoId, pesoUnitarioG) {
+    const r = await accionSensor("PUT", `/sensores/${Number(id)}/alimento`, { alimentoId: real(alimentoId), pesoUnitarioG });
+    await sincronizar();
+    return r;
+  }
+
+  /** Vincula un ESP32 nuevo. Devuelve { identificador, clave } (la clave solo se muestra esta vez). */
+  async function vincularDispositivo(nombre) {
+    const r = await accionSensor("POST", "/sensores", { nombre });
+    await sincronizar();
+    return r;
   }
 
   // ---------------- ALERTAS (HU-04) ----------------
@@ -390,8 +421,30 @@ const QHDC = (() => {
     });
     datos.sensores.forEach((s) => {
       if (!s.enLinea) {
+        const revisar = s.bateria === null || s.bateria === undefined
+          ? "Revisa que esté conectado por USB y que tenga WiFi."
+          : `Revisa la batería (${s.bateria}%) o el WiFi.`;
         lista.push({ id: `disp-${s.id}`, tipo: "sensor", nivel: "info", icono: "fa-plug-circle-xmark", sensorId: s.id,
-          titulo: `${s.nombre} desconectado`, detalle: `No recibimos datos del ${s.modelo} en ${s.ubicacion.toLowerCase()}. Revisa la batería (${s.bateria}%) o el WiFi.` });
+          titulo: `${s.nombre} desconectado`, detalle: `No recibimos datos del ${s.modelo} en ${s.ubicacion.toLowerCase()}. ${revisar}` });
+      }
+      // Temperatura y humedad fuera del rango del lugar (DHT22). Solo informan
+      // la medición: no afirman que un alimento esté en mal estado.
+      const lim = s.limites;
+      if (s.enLinea && lim && typeof s.temperatura === "number") {
+        const alta = lim.tempMax !== null && s.temperatura > lim.tempMax;
+        if (alta || (lim.tempMin !== null && s.temperatura < lim.tempMin)) {
+          lista.push({ id: `amb-t-${s.id}`, tipo: "sensor", nivel: "aviso", icono: alta ? "fa-temperature-high" : "fa-temperature-low", sensorId: s.id,
+            titulo: `${alta ? "Temperatura alta" : "Temperatura baja"} en ${s.ubicacion.toLowerCase()}`,
+            detalle: `El sensor marca ${s.temperatura} °C y el rango configurado es de ${lim.tempMin ?? "—"} a ${lim.tempMax ?? "—"} °C. Revisa la ventilación o la ubicación del sensor.` });
+        }
+      }
+      if (s.enLinea && lim && typeof s.humedad === "number") {
+        const alta = lim.humMax !== null && s.humedad > lim.humMax;
+        if (alta || (lim.humMin !== null && s.humedad < lim.humMin)) {
+          lista.push({ id: `amb-h-${s.id}`, tipo: "sensor", nivel: "aviso", icono: "fa-droplet", sensorId: s.id,
+            titulo: `${alta ? "Humedad alta" : "Humedad baja"} en ${s.ubicacion.toLowerCase()}`,
+            detalle: `El sensor marca ${s.humedad} % de humedad y el rango configurado es de ${lim.humMin ?? "—"} a ${lim.humMax ?? "—"} %. Mantén cerrados los envases de granos, harinas y cereales.` });
+        }
       }
       if (s.tipo === "gas" && s.enLinea && s.gas > 400) {
         lista.push({ id: `gas-${s.id}`, tipo: "sensor", nivel: "peligro", icono: "fa-wind", sensorId: s.id,
@@ -399,7 +452,10 @@ const QHDC = (() => {
       }
     });
     const orden = { peligro: 0, aviso: 1, info: 2 };
+    // Solo los tipos de aviso que esta persona quiere ver (Ajustes → Avisos)
+    const quiere = { caducidad: avisosPref.caducidad, stock: avisosPref.existencias, sensor: avisosPref.dispositivos };
     return lista
+      .filter((a) => quiere[a.tipo] !== false)
       .map((a) => ({ ...a, leida: datos.alertasLeidas.includes(a.id) }))
       .sort((a, b) => a.leida - b.leida || orden[a.nivel] - orden[b.nivel]);
   }
@@ -410,6 +466,27 @@ const QHDC = (() => {
     enviar("PUT", "/avisos/leida", () => ({ clave: claveAviso(id), leida }));
   }
   const claveAviso = (id) => String(id).replace(/^(cad|stock)-(-?\d+)$/, (_, t, n) => `${t}-${real(n)}`);
+
+  // Qué avisos quiere ver esta persona (vienen del servidor en preferencias)
+  let avisosPref = { caducidad: true, existencias: true, dispositivos: true };
+  const preferenciasAvisos = () => ({ ...avisosPref });
+  /** Guarda qué avisos ver: { caducidad, existencias, dispositivos } (true/false). */
+  async function guardarPreferenciasAvisos(nuevas) {
+    avisosPref = { ...avisosPref, ...nuevas };
+    await pedir("PUT", "/preferencias", {
+      avisosCaducidad: avisosPref.caducidad, avisosExistencias: avisosPref.existencias, avisosDispositivos: avisosPref.dispositivos,
+    });
+    return preferenciasAvisos();
+  }
+  /** Historial de avisos de los últimos `dias` días (también los ya resueltos). */
+  async function historialAvisos(dias = 30) {
+    try {
+      return (await pedir("GET", `/avisos/historial?dias=${Number(dias)}`)).avisos;
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+      throw e;
+    }
+  }
 
   // ---------------- IA: CONSUMIR PRIMERO Y PREDICCIÓN (HU-05, HU-06) ----------------
   function consumirPrimero() {
@@ -452,6 +529,33 @@ const QHDC = (() => {
     return texto || "Todo en orden: no hay nada urgente en tu cocina.";
   }
 
+  /**
+   * Pregunta al asistente con IA (Claude, en el servidor). El servidor usa los
+   * datos exactos de la cocina y valida la respuesta; también la guarda.
+   * Devuelve { respuesta, intencion, alimentos[ids], recetaId, recetaNueva }.
+   */
+  async function preguntarAsistente(pregunta) {
+    try {
+      return await pedir("POST", "/asistente/preguntar", { pregunta });
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+      throw e;
+    }
+  }
+
+  // ---------------- AJUSTES ----------------
+  /** Llama a /api/ajustes… y espera la respuesta (errores con su mensaje). */
+  async function ajustes(metodo = "GET", ruta = "", cuerpo) {
+    try {
+      const r = await pedir(metodo, `/ajustes${ruta}`, cuerpo);
+      if (metodo !== "GET") await sincronizar(); // categorías, lugares, nombre del hogar…
+      return r;
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+      throw e;
+    }
+  }
+
   function registrarConversacion(pregunta, respuesta) {
     enviar("POST", "/asistente/mensajes", { pregunta, respuesta }, { silencioso: true });
   }
@@ -459,12 +563,12 @@ const QHDC = (() => {
   // ---------------- LISTA DE COMPRAS (HU-07) ----------------
   function listaCompras() {
     const auto = productos()
-      .filter((p) => p.estado.cad === "caducado" || p.estado.pct <= 30 || (p.estado.diasAgotar !== null && p.estado.diasAgotar <= 5))
+      .filter((p) => p.estado.cad === "caducado" || p.estado.pct <= (p.minimo ?? 30) || (p.estado.diasAgotar !== null && p.estado.diasAgotar <= 5))
       .map((p) => {
         const e = p.estado;
         let motivo, icono, prioridad;
         if (e.cad === "caducado") { motivo = "Caducó, hay que reponerlo"; icono = "fa-calendar-xmark"; prioridad = "alta"; }
-        else if (e.pct <= 30) { motivo = `Quedan ${formatoCantidad(p.cantidad, p.unidad)} (${e.pct}%)`; icono = "fa-arrow-trend-down"; prioridad = e.pct <= 15 ? "alta" : "media"; }
+        else if (e.pct <= (p.minimo ?? 30)) { motivo = `Quedan ${formatoCantidad(p.cantidad, p.unidad)} (${e.pct}%)`; icono = "fa-arrow-trend-down"; prioridad = e.pct <= 15 ? "alta" : "media"; }
         else { motivo = `Se acaba en ~${e.diasAgotar} días según tu consumo`; icono = "fa-brain"; prioridad = "media"; }
         const falta = +(p.capacidad - p.cantidad).toFixed(2);
         const sugerida = e.cad === "caducado" || falta <= 0 ? p.capacidad : falta;
@@ -521,13 +625,38 @@ const QHDC = (() => {
   // ---------------- RECETAS (HU-08) ----------------
   const normalizar = (t) => t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+  // Comparar nombres por palabras, sin acentos ni plurales (misma regla que el servidor,
+  // backend/src/modulos/inventario/nombres.js): "Huevos" ↔ "Huevo", "Queso" ↔ "Queso Oaxaca",
+  // pero "Sal" no coincide con "Salsa".
+  const VACIAS = new Set(["de", "del", "la", "el", "los", "las", "en", "con", "y", "al", "a"]);
+  const BASICOS = ["sal", "pimienta", "agua", "aceite", "azucar"];
+  const palabras = (t) => normalizar(String(t || "")).split(/[^a-z0-9]+/).filter((w) => w && !VACIAS.has(w)).map((w) => (w.length > 3 ? w.replace(/s$/, "") : w));
+  const mismaPalabra = (a, b) => a === b || (Math.min(a.length, b.length) >= 3 && Math.abs(a.length - b.length) === 1 && (a.startsWith(b) || b.startsWith(a)));
+  function coincideNombre(a, b) {
+    const A = palabras(a), B = palabras(b);
+    if (!A.length || !B.length) return false;
+    const [corta, larga] = A.length <= B.length ? [A, B] : [B, A];
+    return corta.every((w) => larga.some((v) => mismaPalabra(w, v)));
+  }
+  const esBasico = (nombre) => { const p = palabras(nombre); return p.length > 0 && p.every((w) => BASICOS.includes(w)); };
+  const hayDe = (p) => p.cantidad > 0 && p.estado.cad !== "caducado";
+  /** El alimento de la alacena que corresponde a un ingrediente (prefiere el que sí hay) */
+  function buscarIngrediente(inv, nombre) {
+    const n = normalizar(nombre);
+    const exacto = (p) => normalizar(p.nombre) === n;
+    const candidatos = inv.filter((p) => exacto(p) || coincideNombre(p.nombre, nombre));
+    return candidatos.find((p) => exacto(p) && hayDe(p)) || candidatos.find(hayDe) || candidatos.find(exacto) || candidatos[0];
+  }
+
   function recetasSugeridas() {
     const inv = productos();
     return RECETAS.map((r) => {
       const ingredientes = r.ingredientes.map((ing) => {
-        const producto = inv.find((p) => normalizar(p.nombre).includes(normalizar(ing.nombre)));
-        const disponible = !!producto && producto.cantidad > 0 && producto.estado.cad !== "caducado";
-        const urgente = disponible && ["urgente", "pronto"].includes(producto.estado.cad);
+        const producto = buscarIngrediente(inv, ing.nombre);
+        // Sal, aceite, etc. se dan por hechos si no están registrados
+        const disponible = producto ? hayDe(producto) : esBasico(ing.nombre);
+        // (un básico sin registrar no tiene alimento: nunca es urgente)
+        const urgente = disponible && !!producto && ["urgente", "pronto"].includes(producto.estado.cad);
         return { ...ing, producto, disponible, urgente };
       });
       const faltan = ingredientes.filter((i) => !i.disponible).length;
@@ -535,6 +664,36 @@ const QHDC = (() => {
       const coincidencia = Math.round(((ingredientes.length - faltan) / ingredientes.length) * 100);
       return { ...r, ingredientes, faltan, urgentes, coincidencia, puntos: urgentes * 3 - faltan * 2 };
     }).sort((a, b) => b.puntos - a.puntos || b.coincidencia - a.coincidencia);
+  }
+
+  // ---- Recetas propias del hogar ----
+  /** Borrador de receta con IA (no se guarda). { elegidos: [ids], indicaciones, porciones, foto: Blob|null } */
+  async function generarReceta({ elegidos = [], indicaciones = "", porciones = "", foto = null }) {
+    const f = new FormData();
+    f.append("elegidos", JSON.stringify(elegidos.map(real)));
+    if (indicaciones) f.append("indicaciones", indicaciones);
+    if (porciones) f.append("porciones", String(porciones));
+    if (foto) f.append("foto", foto, "ingredientes.jpg");
+    let r;
+    try {
+      r = await fetch(API + "/recetas/generar", { method: "POST", credentials: "same-origin", body: f });
+    } catch (e) {
+      throw Object.assign(new Error("No hay conexión con el servidor."), { estado: 0 });
+    }
+    const json = await r.json().catch(() => null);
+    if (r.status === 401) location.replace("login.html");
+    if (!r.ok) throw Object.assign(new Error((json && json.error) || `Error ${r.status}`), { estado: r.status });
+    return json;
+  }
+  /** Guarda una receta del hogar y trae el estado actualizado. Devuelve su id. */
+  async function guardarReceta(receta) {
+    const r = await pedir("POST", "/recetas", receta);
+    await sincronizar();
+    return r.id;
+  }
+  async function borrarReceta(id) {
+    await pedir("DELETE", `/recetas/${Number(id)}`);
+    await sincronizar();
   }
 
   // "¡Terminé!" del modo cocina: descuenta lo usado y queda en el historial
@@ -546,45 +705,65 @@ const QHDC = (() => {
   }
 
   // ---------------- CÁMARA (HU-10) ----------------
-  // Simula lo que devolvería un modelo de visión (el catálogo viene de la base)
-  function detectarAlimentos() {
-    const mezclados = [...CATALOGO_CAMARA].sort(() => Math.random() - 0.5);
-    const cuantos = 3 + Math.floor(Math.random() * 2);
-    return mezclados.slice(0, cuantos).map((a) => ({
-      ...a,
-      confianza: Math.round(82 + Math.random() * 17),
-      caja: { x: 5 + Math.random() * 60, y: 5 + Math.random() * 55, w: 20 + Math.random() * 12, h: 22 + Math.random() * 12 },
-    }));
-  }
+  // La foto se sube al servidor, que la valida y la guarda en privado; el
+  // servidor pide a la IA (Claude) que identifique los alimentos y devuelve
+  // propuestas. NADA entra al inventario hasta confirmarEscaneo().
 
+  // Catálogo de alimentos conocidos (lo usa también "Alimentos frecuentes")
+  function detectarAlimentos() { return []; } // se conserva el nombre por compatibilidad
   detectarAlimentos.catalogo = () => CATALOGO_CAMARA.map((a) => ({ ...a }));
 
-  // alimentos = los que se guardan · todos = también los que se descartaron (para el historial)
-  function agregarDesdeCamara(alimentos, todos = alimentos) {
-    alimentos.forEach((a) => {
-      const existente = datos.productos.find((p) => normalizar(p.nombre) === normalizar(a.nombre));
-      if (existente) {
-        existente.cantidad = +(existente.cantidad + Number(a.cantidad)).toFixed(2);
-        existente.capacidad = Math.max(existente.capacidad, existente.cantidad);
-        existente.caducidad = a.caducidad;
-      } else {
-        crearLocal(fichaLimpia({
-          nombre: a.nombre, categoria: a.categoria, ubicacion: a.categoria === "Granos y cereales" ? "Despensa" : "Refrigerador",
-          cantidad: a.cantidad, capacidad: a.cantidad, unidad: a.unidad, caducidad: a.caducidad,
-          precio: a.precio, icono: a.icono, color: a.color,
-        }), "camara");
-      }
-    });
-    datos.escaneos.unshift({ fecha: new Date().toISOString(), alimentos: alimentos.map((a) => a.nombre) });
-    datos.escaneos = datos.escaneos.slice(0, 5);
-    const elegidos = new Set(alimentos);
-    enviar("POST", "/escaneos", {
-      alimentos: todos.map((a) => ({
-        nombre: a.nombre, categoria: a.categoria, unidad: a.unidad, cantidad: a.cantidad, caducidad: a.caducidad,
-        precio: a.precio, icono: a.icono, color: a.color, confianza: a.confianza, caja: a.caja, elegido: elegidos.has(a),
-      })),
-    }, { alTerminar: () => programarSincronizacion(0) });
+  /** Sube la foto (Blob JPEG). Devuelve { escaneoId, imagenId, imagenUrl }. */
+  async function subirFoto(blob, origen = "camara") {
+    const formulario = new FormData();
+    formulario.append("origen", origen);
+    formulario.append("foto", blob, "foto.jpg");
+    let r;
+    try {
+      r = await fetch(API + "/escaneos/foto", { method: "POST", credentials: "same-origin", body: formulario });
+    } catch (e) {
+      throw Object.assign(new Error("No hay conexión con el servidor."), { estado: 0 });
+    }
+    const json = await r.json().catch(() => null);
+    if (r.status === 401) location.replace("login.html");
+    if (!r.ok) throw Object.assign(new Error((json && json.error) || `Error ${r.status}`), { estado: r.status });
+    return json;
   }
+
+  /** Pide a la IA que reconozca los alimentos. Devuelve { simulado, observaciones, alimentos[] }. */
+  async function analizarFoto(escaneoId) {
+    try {
+      return await pedir("POST", `/escaneos/${Number(escaneoId)}/analizar`, {});
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+      throw e;
+    }
+  }
+
+  /** Guarda en el inventario SOLO lo que la persona confirmó (y como lo corrigió). */
+  async function confirmarEscaneo(escaneoId, alimentos) {
+    let r;
+    try {
+      r = await pedir("POST", `/escaneos/${Number(escaneoId)}/confirmar`, {
+        alimentos: alimentos.map((a) => ({
+          identificacionId: a.identificacionId, elegido: a.elegido, nombre: a.nombre, cantidad: a.cantidad,
+          caducidad: a.caducidad, categoria: a.categoria, unidad: a.unidad, icono: a.icono, color: a.color,
+        })),
+      });
+    } catch (e) {
+      if (e.estado === 401) location.replace("login.html");
+      throw e;
+    }
+    await sincronizar(); // trae la alacena real con lo que se acaba de guardar
+    return r;
+  }
+
+  /** Borra una foto del servidor. */
+  async function borrarFoto(imagenId) {
+    await pedir("DELETE", `/imagenes/${Number(imagenId)}`);
+    datos.escaneos = datos.escaneos.filter((e) => e.imagen !== `/api/imagenes/${Number(imagenId)}`);
+  }
+
   const escaneos = () => datos.escaneos;
 
   // ---------------- SESIÓN (HU-09) ----------------
@@ -626,9 +805,25 @@ const QHDC = (() => {
       throw e;
     }
   }
-  async function registrar({ nombre, email, password, hogar, personas, lugares }) {
+  /** Datos de una invitación (hogar, correo, rol) o null si ya no vale. */
+  async function leerInvitacion(token) {
+    try { return await pedir("GET", `/auth/invitacion/${encodeURIComponent(token)}`); } catch (e) { return null; }
+  }
+  /** Configuración pública de inicio de sesión: { google: clientId | null } */
+  async function configuracionAcceso() {
+    try { return await pedir("GET", "/auth/config"); } catch (e) { return { google: null }; }
+  }
+  /** Entra (o crea la cuenta) con el "credential" que entrega Google. */
+  async function entrarConGoogle(credential, invitacion) {
+    const r = await pedir("POST", "/auth/google", { credential, invitacion: invitacion || undefined });
+    guardarPerfil(r.perfil);
+    sesion = r.sesion;
+    return sesion;
+  }
+
+  async function registrar({ nombre, email, password, hogar, personas, lugares, invitacion }) {
     try {
-      const r = await pedir("POST", "/auth/registro", { nombre: nombre.trim(), email: String(email).trim().toLowerCase(), password, hogar: hogar.trim() || "Mi casa", personas, lugares });
+      const r = await pedir("POST", "/auth/registro", { nombre: nombre.trim(), email: String(email).trim().toLowerCase(), password, hogar: hogar.trim() || "Mi casa", personas, lugares, invitacion: invitacion || undefined });
       guardarPerfil(r.perfil);
       sesion = r.sesion;
       return { sesion };
@@ -642,17 +837,12 @@ const QHDC = (() => {
     sesion = null;
   }
 
-  // Borra la alacena y carga la cocina de ejemplo (solo administrador)
-  async function reiniciar() {
-    await cola; // primero se terminan de guardar los cambios pendientes
-    await pedir("POST", "/hogar/restablecer", {});
-  }
-
   // ---------------- PREFERENCIAS SINCRONIZADAS ----------------
   // Tema, sonidos, menú, vista y recorridos se guardan también en la base,
   // así te siguen a cualquier dispositivo.
   const PANTALLAS = ["dashboard", "inventario", "alertas", "lista-compras", "asistente", "recetas", "escanear", "sensores"];
   function aplicarPreferencias(p) {
+    if (p && p.avisos) avisosPref = { ...avisosPref, ...p.avisos };
     if (!p || typeof Pref === "undefined") return;
     if (p.tema === "claro" || p.tema === "oscuro") {
       document.documentElement.dataset.tema = p.tema;
@@ -699,9 +889,12 @@ const QHDC = (() => {
             <li>Ejecuta <code>npm start</code></li>
             <li>Entra a <a href="http://localhost:3000">http://localhost:3000</a></li>
           </ol>
-          <button type="button" onclick="location.reload()" style="font:inherit;font-weight:700;padding:10px 16px;border:3px solid #2b1d14;border-radius:12px;background:#e8562a;color:#fff;cursor:pointer">Reintentar</button>
+          <button type="button" id="btnReintentarServidor" style="font:inherit;font-weight:700;padding:10px 16px;border:3px solid #2b1d14;border-radius:12px;background:#e8562a;color:#fff;cursor:pointer">Reintentar</button>
         </div>
       </div>`);
+    // Sin onclick en el HTML: así lo permite la política de seguridad (CSP)
+    const reintentar = document.getElementById("btnReintentarServidor");
+    if (reintentar) reintentar.addEventListener("click", () => location.reload());
   }
 
   // Carga, en orden, los scripts de la página (app.js, inventario.js...)
@@ -745,17 +938,17 @@ const QHDC = (() => {
     // productos
     productos, producto, guardarProducto, eliminarProducto, restaurarProducto, consumir, rellenar, paso, ajustar, frescura,
     // sensores
-    sensores, lecturas, simularCiclo, alternarSensor,
+    sensores, lecturas, simularCiclo, reconectarSensor, calibrarBascula, asignarAlimentoBascula, vincularDispositivo,
     // alertas
-    alertas, alertasPendientes, marcarLeida,
+    alertas, alertasPendientes, marcarLeida, preferenciasAvisos, guardarPreferenciasAvisos, historialAvisos,
     // IA
-    consumirPrimero, predicciones, resumenIA, registrarConversacion,
+    consumirPrimero, predicciones, resumenIA, registrarConversacion, preguntarAsistente, ajustes,
     // compras
     listaCompras, marcarComprado, agregarExtra, eliminarExtra, finalizarCompra,
     // recetas y cámara
-    recetasSugeridas, terminarReceta, detectarAlimentos, agregarDesdeCamara, escaneos,
+    recetasSugeridas, terminarReceta, generarReceta, guardarReceta, borrarReceta, detectarAlimentos, subirFoto, analizarFoto, confirmarEscaneo, borrarFoto, escaneos,
     // sesión
-    iniciarSesion, registrar, sesionActual, cerrarSesion, reiniciar, perfiles, entrarComoPerfil,
+    iniciarSesion, registrar, sesionActual, cerrarSesion, perfiles, entrarComoPerfil, leerInvitacion, configuracionAcceso, entrarConGoogle,
     // servidor
     listo, sincronizar,
   };
