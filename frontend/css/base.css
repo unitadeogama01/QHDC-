@@ -1,0 +1,407 @@
+/* ============================================================
+   QHDC! — SISTEMA DE DISEÑO (lo usan TODAS las páginas)
+
+   Estilo "sticker de cocina": bordes de tinta gruesos y sombras
+   sólidas desplazadas, igual que el logo. Los botones se "hunden"
+   al presionarlos. Incluye tema claro y oscuro con las mismas
+   variables, así que ninguna página necesita colores fijos.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap");
+
+/* Permite animar el anillo de frescura de forma suave */
+@property --valor {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* ---------------- TEMA CLARO (por defecto) ---------------- */
+:root {
+  /* Paleta "cálido de cocina" */
+  --crema: #fbf6ee;
+  --crema-osc: #f3eadb;
+  --tomate: #e8562a;
+  --tomate-osc: #c63f17;
+  --tomate-claro: #fce3d9;
+  --oliva: #6b8e3d;
+  --oliva-osc: #5a7a31;
+  --oliva-claro: #e7eedb;
+  --mostaza: #f2b33d;
+  --mostaza-osc: #8a5d0a;
+  --mostaza-claro: #fdf0d3;
+  --petroleo: #03656f;
+  --petroleo-claro: #d9eef0;
+  --cafe: #2b1d14;
+  --cafe-suave: #7a6556;
+
+  /* Roles (lo que usan los componentes) */
+  --fondo: var(--crema);
+  --superficie: #ffffff;
+  --superficie-2: var(--crema-osc);
+  --texto: var(--cafe);
+  --texto-suave: var(--cafe-suave);
+  --tinta: var(--cafe);              /* bordes y sombras "sticker" */
+  --borde: #eadfcf;
+  --acento: var(--tomate);
+  --acento-texto: var(--tomate-osc);
+
+  /* Estados: siempre van con icono + texto */
+  --ok-fondo: var(--oliva-claro);   --ok-texto: #4c6a28;
+  --aviso-fondo: var(--mostaza-claro); --aviso-texto: var(--mostaza-osc);
+  --peligro-fondo: var(--tomate-claro); --peligro-texto: #a63512;
+  --info-fondo: var(--petroleo-claro); --info-texto: var(--petroleo);
+
+  --letra-titulo: "Fredoka", "Trebuchet MS", sans-serif;
+  --letra-texto: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+  --radio: 20px;
+  --radio-sm: 12px;
+  --sombra-dura: 4px 4px 0 var(--tinta);
+  --sombra-dura-sm: 2px 2px 0 var(--tinta);
+  --sombra-suave: 0 10px 30px rgba(43, 29, 20, 0.12);
+  --ancho-max: 1180px;
+  --rebote: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  color-scheme: light;
+}
+
+/* ---------------- TEMA OSCURO ---------------- */
+[data-tema="oscuro"] {
+  --fondo: #1e1510;
+  --superficie: #2a1f18;
+  --superficie-2: #36291f;
+  --texto: #f3eadb;
+  --texto-suave: #b8a493;
+  --tinta: #0b0705;
+  --borde: #4a3a2e;
+  --acento: #ff7a4d;
+  --acento-texto: #ff9c78;
+  --tomate-claro: #4a2418;
+  --oliva-claro: #2c3a1c;
+  --mostaza-claro: #46350f;
+  --petroleo-claro: #12393d;
+
+  --ok-fondo: #2c3a1c;      --ok-texto: #b9e08c;
+  --aviso-fondo: #46350f;   --aviso-texto: #ffd27a;
+  --peligro-fondo: #4a2418; --peligro-texto: #ffb199;
+  --info-fondo: #12393d;    --info-texto: #6fd3dc;
+
+  --sombra-suave: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+/* ---------------- REINICIO ---------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--letra-texto);
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s, color 0.3s;
+}
+h1, h2, h3, h4 { font-family: var(--letra-titulo); line-height: 1.15; font-weight: 600; }
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+::selection { background: var(--mostaza); color: var(--cafe); }
+
+:focus-visible { outline: 3px solid var(--mostaza); outline-offset: 3px; border-radius: 8px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.oculto { display: none !important; }
+.texto-suave { color: var(--texto-suave); }
+.texto-chico { font-size: 0.86rem; }
+.contenedor { width: 100%; max-width: var(--ancho-max); margin: 0 auto; padding: 0 20px; }
+
+/* ---------------- LOGO ---------------- */
+.logo {
+  display: inline-flex; align-items: center; gap: 10px; min-width: 0;
+  font-family: var(--letra-titulo); font-weight: 700; font-size: 1.45rem; line-height: 1.1;
+  color: var(--acento);
+}
+.logo-img { width: 56px; height: 56px; flex-shrink: 0; object-fit: contain; transition: transform 0.4s var(--rebote); }
+.logo:hover .logo-img { transform: rotate(-8deg) scale(1.06); }
+.logo-texto { white-space: nowrap; }
+
+/* ---------------- BOTONES "STICKER" ---------------- */
+.btn {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 20px;
+  border: 2px solid var(--tinta);
+  border-radius: 14px;
+  background: var(--superficie);
+  color: var(--texto);
+  font-family: var(--letra-texto); font-weight: 800; font-size: 0.97rem; line-height: 1.2;
+  box-shadow: var(--sombra-dura-sm);
+  white-space: nowrap;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--tinta); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--tinta); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: var(--sombra-dura-sm); }
+
+.btn-principal { background: var(--tomate); color: var(--cafe); }
+.btn-oliva { background: var(--oliva-osc); color: #fff; }
+.btn-mostaza { background: var(--mostaza); color: var(--cafe); }
+.btn-oscuro { background: var(--cafe); color: var(--crema); }
+[data-tema="oscuro"] .btn-oscuro { background: var(--crema); color: var(--cafe); }
+.btn-peligro { background: var(--peligro-fondo); color: var(--peligro-texto); }
+.btn-fantasma { border-color: transparent; box-shadow: none; background: transparent; }
+.btn-fantasma:hover { background: var(--superficie-2); box-shadow: none; transform: none; }
+.btn-sm { padding: 7px 13px; font-size: 0.85rem; border-radius: 11px; }
+.btn-lg { padding: 15px 26px; font-size: 1.08rem; border-radius: 16px; }
+.btn-bloque { width: 100%; }
+
+/* Botón redondo solo con icono */
+.btn-icono {
+  position: relative;
+  width: 42px; height: 42px; flex-shrink: 0;
+  display: inline-grid; place-items: center;
+  border: 2px solid transparent; border-radius: 13px;
+  background: transparent; color: var(--texto-suave);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.btn-icono:hover { background: var(--superficie-2); color: var(--acento-texto); }
+.btn-icono:active { transform: scale(0.9); }
+.btn-icono.con-borde { border-color: var(--tinta); background: var(--superficie); box-shadow: var(--sombra-dura-sm); color: var(--texto); }
+
+/* Onda al presionar (la crea interaccion.js) */
+.onda {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: currentColor; opacity: 0.25; transform: scale(0);
+  animation: onda 0.55s ease-out forwards;
+}
+@keyframes onda { to { transform: scale(2.6); opacity: 0; } }
+
+/* ---------------- ETIQUETAS ---------------- */
+.etiqueta {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 13px;
+  border: 2px solid var(--tinta); border-radius: 999px;
+  background: var(--mostaza); color: var(--cafe);
+  font-size: 0.78rem; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 800; white-space: nowrap;
+  background: var(--superficie-2); color: var(--texto-suave);
+}
+.badge-ok { background: var(--ok-fondo); color: var(--ok-texto); }
+.badge-aviso { background: var(--aviso-fondo); color: var(--aviso-texto); }
+.badge-peligro { background: var(--peligro-fondo); color: var(--peligro-texto); }
+.badge-info { background: var(--info-fondo); color: var(--info-texto); }
+.badge-tinta { background: var(--tinta); color: var(--crema); }
+
+/* ---------------- TARJETAS ---------------- */
+.tarjeta {
+  background: var(--superficie);
+  border: 2px solid var(--tinta);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura);
+  padding: 22px;
+}
+.tarjeta-suave {
+  background: var(--superficie);
+  border: 2px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 18px;
+}
+
+/* ---------------- FORMULARIOS ---------------- */
+.campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.campo label, .campo .etq { font-weight: 800; font-size: 0.88rem; }
+.campo small { color: var(--texto-suave); font-size: 0.8rem; }
+.control {
+  width: 100%;
+  padding: 11px 14px;
+  border: 2px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--superficie);
+  font-size: 0.97rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.control:hover { border-color: var(--texto-suave); }
+.control:focus { outline: none; border-color: var(--tinta); box-shadow: 3px 3px 0 var(--acento); }
+.control.invalido { border-color: var(--tomate); animation: sacudir 0.35s; }
+.control-icono { position: relative; }
+.control-icono > i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--texto-suave); pointer-events: none; }
+.control-icono .control { padding-left: 42px; }
+.campos-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.campos-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
+
+/* Interruptor (switch) */
+.interruptor { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; cursor: pointer; user-select: none; }
+.interruptor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.interruptor .riel {
+  position: relative; width: 48px; height: 28px; flex-shrink: 0;
+  border: 2px solid var(--tinta); border-radius: 999px;
+  background: var(--superficie-2); transition: background 0.2s;
+}
+.interruptor .riel::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--superficie); border: 2px solid var(--tinta);
+  transition: transform 0.25s var(--rebote);
+}
+.interruptor input:checked + .riel { background: var(--oliva); }
+.interruptor input:checked + .riel::after { transform: translateX(20px); }
+.interruptor input:focus-visible + .riel { outline: 3px solid var(--mostaza); outline-offset: 2px; }
+
+/* Control segmentado (pestañas pequeñas) */
+.segmentos {
+  display: inline-flex; padding: 4px; gap: 4px;
+  border: 2px solid var(--tinta); border-radius: 14px; background: var(--superficie);
+}
+.segmentos button {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px; border: none; border-radius: 10px;
+  background: transparent; color: var(--texto-suave); font-weight: 800; font-size: 0.88rem;
+  transition: background 0.2s, color 0.2s;
+}
+.segmentos button:hover { color: var(--texto); }
+.segmentos button[aria-pressed="true"] { background: var(--tinta); color: var(--crema); }
+[data-tema="oscuro"] .segmentos button[aria-pressed="true"] { background: var(--crema); color: var(--cafe); }
+
+/* Chips de filtro */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px; border-radius: 999px;
+  border: 2px solid var(--borde); background: var(--superficie);
+  font-weight: 800; font-size: 0.86rem; color: var(--texto-suave);
+  transition: 0.2s;
+}
+.chip:hover { border-color: var(--tinta); color: var(--texto); }
+.chip[aria-pressed="true"] { background: var(--mostaza); border-color: var(--tinta); color: var(--cafe); box-shadow: var(--sombra-dura-sm); }
+.chip .num { min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--tomate); color: var(--cafe); font-size: 0.72rem; text-align: center; }
+
+/* ---------------- BARRA DE NIVEL ---------------- */
+.barra { height: 10px; background: var(--superficie-2); border-radius: 999px; overflow: hidden; border: 1.5px solid var(--borde); }
+.barra span { display: block; height: 100%; border-radius: 999px; background: var(--oliva); transition: width 0.8s var(--rebote); }
+.barra span.medio { background: var(--mostaza); }
+.barra span.bajo { background: var(--tomate); }
+
+/* ============================================================
+   FRASCO: muestra cuánto queda de un alimento como un frasco
+   que se llena. El nivel se controla con --nivel (0% a 100%).
+   ============================================================ */
+.frasco {
+  --t: 70px;
+  --color: var(--oliva);
+  position: relative;
+  width: var(--t);
+  height: calc(var(--t) * 1.18);
+  flex-shrink: 0;
+}
+.frasco .tapa {
+  position: absolute; left: 18%; right: 18%; top: 0;
+  height: 14%;
+  background: var(--color);
+  border: 2px solid var(--tinta);
+  border-radius: 6px 6px 3px 3px;
+  filter: brightness(0.85);
+}
+.frasco .cuerpo {
+  position: absolute; left: 0; right: 0; top: 11%; bottom: 0;
+  border: 2px solid var(--tinta);
+  border-radius: 14px 14px 20px 20px;
+  background: var(--superficie);
+  overflow: hidden;
+}
+.frasco .liquido {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: var(--nivel, 50%);
+  background: var(--color);
+  opacity: 0.9;
+  transition: height 1s var(--rebote);
+}
+/* Olitas en la superficie del líquido */
+.frasco .liquido::before {
+  content: "";
+  position: absolute; left: 0; top: -7px;
+  width: 200%; height: 8px;
+  background: radial-gradient(circle at 10px 8px, var(--color) 7px, transparent 7.5px) 0 0 / 20px 8px repeat-x;
+  animation: ola 2.2s linear infinite;
+}
+/* Brillo del vidrio */
+.frasco .cuerpo::after {
+  content: ""; position: absolute; top: 10%; left: 12%;
+  width: 12%; height: 45%;
+  border-radius: 999px; background: rgba(255, 255, 255, 0.55);
+}
+.frasco .icono {
+  position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%);
+  width: 46%; aspect-ratio: 1;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--superficie);
+  border: 2px solid var(--tinta);
+  color: var(--texto);
+  font-size: calc(var(--t) * 0.2);
+  z-index: 1;
+}
+.frasco.bajo { --color: var(--tomate); }
+.frasco.medio { --color: var(--mostaza); }
+.frasco.vacio .liquido { height: 0 !important; }
+@keyframes ola { to { transform: translateX(-50%); } }
+
+/* ============================================================
+   ANILLO: indicador circular (frescura de la cocina).
+   El valor se controla con --valor (0 a 100).
+   ============================================================ */
+.anillo {
+  --t: 170px;
+  --color: var(--oliva);
+  width: var(--t); height: var(--t);
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--tinta);
+  background: conic-gradient(var(--color) calc(var(--valor) * 1%), var(--superficie-2) 0);
+  display: grid; place-items: center;
+  transition: --valor 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: var(--sombra-dura);
+}
+.anillo-centro {
+  width: 74%; height: 74%;
+  border-radius: 50%;
+  background: var(--superficie);
+  border: 2px solid var(--tinta);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; line-height: 1.1;
+}
+.anillo-centro strong { font-family: var(--letra-titulo); font-size: calc(var(--t) * 0.26); }
+.anillo-centro small { font-weight: 800; font-size: 0.78rem; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---------------- ANIMACIONES ---------------- */
+/* Los hijos de [data-escalonar] aparecen uno tras otro (interaccion.js pone --i) */
+.aparecer { animation: entrar 0.55s var(--rebote) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes entrar { from { opacity: 0; transform: translateY(16px) scale(0.98); } }
+@keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes flotar { 50% { transform: translateY(-8px); } }
+@keyframes pulso { 50% { opacity: 0.25; } }
+@keyframes sacudir { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes girar { to { transform: rotate(360deg); } }
+@keyframes latido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+.punto-vivo { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--oliva); animation: pulso 1.2s infinite; }
+
+/* Quien prefiere menos movimiento lo tiene */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+@media (max-width: 600px) {
+  .campos-2, .campos-3 { grid-template-columns: 1fr; }
+  .tarjeta { padding: 18px; }
+}

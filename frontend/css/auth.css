@@ -1,0 +1,107 @@
+/* ============================================================
+   QHDC! — ENTRAR Y CREAR CUENTA (login.html, registro.html)
+   ============================================================ */
+
+.auth { min-height: 100vh; display: grid; grid-template-columns: 1fr 1.1fr; }
+
+/* ---------- Lado de la marca ---------- */
+.auth-marca {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 30px;
+  padding: 40px;
+  background: var(--tomate); color: var(--cafe);
+  border-right: 3px solid var(--tinta);
+}
+.auth-marca::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(43, 29, 20, 0.16) 2px, transparent 2px);
+  background-size: 22px 22px;
+}
+.auth-marca > * { position: relative; }
+.auth-marca .logo { color: var(--cafe); }
+.auth-marca .logo-img { background: var(--superficie); border: 2px solid var(--tinta); border-radius: 50%; padding: 3px; }
+.auth-marca h1 { font-size: clamp(2.2rem, 3.8vw, 3.2rem); line-height: 1.05; margin-bottom: 14px; }
+.auth-marca > div > p { font-size: 1.1rem; font-weight: 700; max-width: 440px; }
+.estante-auth { display: flex; gap: 18px; align-items: flex-end; margin-top: 30px; padding-bottom: 10px; border-bottom: 10px solid var(--cafe); width: fit-content; }
+.estante-auth .frasco { animation: flotar 3.5s ease-in-out infinite; }
+.estante-auth .frasco:nth-child(2) { animation-delay: 0.6s; }
+.estante-auth .frasco:nth-child(3) { animation-delay: 1.2s; }
+.estante-auth .frasco:nth-child(4) { animation-delay: 1.8s; }
+.auth-marca small { font-weight: 800; }
+
+/* ---------- Lado del formulario ---------- */
+.auth-form { display: flex; flex-direction: column; justify-content: center; padding: 40px 24px; position: relative; }
+.auth-arriba { position: absolute; top: 18px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center; }
+.volver { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--texto-suave); padding: 6px 10px; border-radius: 10px; }
+.volver:hover { background: var(--superficie-2); color: var(--texto); }
+.auth-caja { width: 100%; max-width: 460px; margin: 0 auto; }
+.auth-caja h2 { font-size: clamp(1.9rem, 3vw, 2.4rem); margin-bottom: 6px; }
+.auth-caja > p { color: var(--texto-suave); margin-bottom: 26px; font-size: 1.05rem; }
+
+/* Perfiles */
+.perfiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 16px; }
+.perfil {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  padding: 18px 10px 14px;
+  border: 2px solid var(--tinta); border-radius: 22px;
+  background: var(--superficie); box-shadow: var(--sombra-dura-sm);
+  transition: transform 0.25s var(--rebote), box-shadow 0.2s;
+}
+.perfil:hover, .perfil:focus-visible { transform: translateY(-6px) rotate(-2deg); box-shadow: var(--sombra-dura); }
+.perfil .cara {
+  width: 72px; height: 72px; display: grid; place-items: center;
+  border: 2px solid var(--tinta); border-radius: 24px;
+  background: var(--tomate); color: var(--cafe);
+  font-family: var(--letra-titulo); font-size: 1.6rem; font-weight: 700;
+  transition: border-radius 0.3s, transform 0.3s var(--rebote);
+}
+.perfil:hover .cara { border-radius: 50%; transform: scale(1.06); }
+.perfil:nth-child(2) .cara { background: var(--oliva); color: #fff; }
+.perfil:nth-child(3) .cara { background: var(--mostaza); }
+.perfil:nth-child(4) .cara { background: var(--petroleo); color: #fff; }
+.perfil strong { line-height: 1.2; }
+.perfil small { color: var(--texto-suave); font-weight: 700; font-size: 0.78rem; }
+.perfil.otra .cara { background: var(--superficie-2); color: var(--texto-suave); border-style: dashed; }
+.perfil.entrando .cara { animation: latido 0.6s ease infinite; }
+
+.form-cuenta { margin-top: 22px; animation: entrar 0.4s var(--rebote); }
+.control-icono .ver-clave {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 36px; height: 36px; border: none; background: none; color: var(--texto-suave); border-radius: 9px;
+}
+.control-icono .ver-clave:hover { color: var(--acento-texto); background: var(--superficie-2); }
+.control-icono .con-boton { padding-right: 46px; }
+.mensaje-error {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; margin-bottom: 16px;
+  border: 2px solid var(--tinta); border-radius: 12px;
+  background: var(--peligro-fondo); color: var(--peligro-texto); font-weight: 800; font-size: 0.92rem;
+  animation: sacudir 0.35s;
+}
+.auth-pie { text-align: center; margin-top: 26px; color: var(--texto-suave); font-weight: 700; }
+.auth-pie a { color: var(--acento-texto); font-weight: 900; }
+.check { display: inline-flex; align-items: flex-start; gap: 10px; cursor: pointer; font-weight: 700; font-size: 0.92rem; margin-bottom: 18px; }
+.check input { width: 20px; height: 20px; accent-color: var(--tomate); margin-top: 2px; flex-shrink: 0; }
+
+/* Medidor de contraseña */
+.fuerza { display: flex; gap: 4px; margin-top: 2px; }
+.fuerza span { flex: 1; height: 6px; border-radius: 4px; background: var(--superficie-2); transition: background 0.3s; }
+.fuerza[data-nivel="1"] span:nth-child(-n+1) { background: var(--tomate); }
+.fuerza[data-nivel="2"] span:nth-child(-n+2) { background: var(--mostaza); }
+.fuerza[data-nivel="3"] span:nth-child(-n+3) { background: var(--oliva); }
+.fuerza-texto { font-size: 0.78rem; font-weight: 800; color: var(--texto-suave); }
+
+/* Pasos del registro */
+.etapas { display: flex; gap: 6px; margin-bottom: 22px; }
+.etapas span { flex: 1; height: 8px; border-radius: 999px; background: var(--superficie-2); border: 1.5px solid var(--borde); transition: background 0.3s; }
+.etapas span.hecha { background: var(--oliva); border-color: var(--tinta); }
+.etapa { animation: entrar 0.4s var(--rebote); }
+.botones-etapa { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+
+@media (max-width: 900px) {
+  .auth { grid-template-columns: 1fr; }
+  .auth-marca { padding: 22px 20px; gap: 14px; border-right: none; border-bottom: 3px solid var(--tinta); }
+  .auth-marca h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  .auth-marca > div > p, .estante-auth, .auth-marca small { display: none; }
+  .auth-form { padding: 70px 16px 40px; justify-content: flex-start; }
+}
