@@ -297,8 +297,8 @@ const UI = (() => {
           <span class="interruptor"><input type="checkbox" data-pref="tema"><span class="riel"></span></span></label>
         <label class="opcion" role="menuitemcheckbox"><i class="fa-solid fa-volume-high"></i> Sonidos
           <span class="interruptor"><input type="checkbox" data-pref="sonido"><span class="riel"></span></span></label>
+        <button class="opcion" role="menuitem" id="btnAjustes" type="button"><i class="fa-solid fa-gear"></i> Ajustes</button>
         <button class="opcion" role="menuitem" id="btnRecorrido" type="button"><i class="fa-solid fa-route"></i> Recorrido de esta pantalla</button>
-        ${sesion.rol === "Administrador" ? '<button class="opcion" role="menuitem" id="btnRestablecer" type="button"><i class="fa-solid fa-rotate-left"></i> Cocina de ejemplo</button>' : ""}
         <button class="opcion peligro" role="menuitem" id="btnSalir" type="button" data-sonido="cerrar"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
       </div>`);
     $("#btnAvatar").setAttribute("aria-expanded", "true");
@@ -309,11 +309,8 @@ const UI = (() => {
     $('[data-pref="tema"]', menu).addEventListener("change", () => Tema.alternar());
     $('[data-pref="sonido"]', menu).addEventListener("change", () => Sonido.alternar());
     $("#btnSalir").addEventListener("click", async () => { await QHDC.cerrarSesion(); location.href = "login.html"; });
+    $("#btnAjustes").addEventListener("click", () => { location.href = "ajustes.html"; });
     $("#btnRecorrido").addEventListener("click", () => { cerrarMenuUsuario(); iniciarRecorrido(); });
-    if ($("#btnRestablecer")) $("#btnRestablecer").addEventListener("click", () => {
-      if (!confirm("¿Cargar la cocina de ejemplo? Se borrará lo que hay ahora en tu alacena.")) return;
-      QHDC.reiniciar().then(() => location.reload(), (e) => { Sonido.alerta(); toast(e.message, { icono: "fa-lock" }); });
-    });
   }
   document.addEventListener("click", cerrarMenuUsuario);
 

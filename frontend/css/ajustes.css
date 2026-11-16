@@ -1,0 +1,66 @@
+/* ============================================================
+   QHDC! — AJUSTES (ajustes.html)
+   Solo acomoda piezas del sistema de diseño (tarjetas, campos,
+   botones, insignias) con las mismas variables de color y borde.
+   ============================================================ */
+
+.ajustes-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.ajustes-layout .ancho { grid-column: 1 / -1; }
+.ajustes-layout form { display: grid; gap: 4px; }
+
+.subtitulo {
+  display: flex; align-items: center; gap: 8px;
+  margin: 22px 0 12px; padding-top: 18px; border-top: 2px dashed var(--borde);
+  font-family: var(--letra-texto); font-size: 0.82rem; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--texto-suave);
+}
+
+/* Formularios de una sola línea: campo(s) + botón */
+.fila-form { display: flex !important; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+.fila-form .control { flex: 1 1 180px; width: auto; }
+.fila-form select.control { flex: 0 1 170px; }
+
+/* Listas de filas (miembros, invitaciones, lugares) */
+.filas { display: grid; gap: 10px; }
+.filas > li {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; border: 2px solid var(--borde); border-radius: var(--radio-sm);
+  background: var(--superficie);
+}
+.filas > li .info { flex: 1 1 160px; min-width: 0; }
+.filas > li .info strong { display: block; line-height: 1.2; }
+.filas > li .info small { color: var(--texto-suave); overflow-wrap: anywhere; }
+.filas > li .control { width: auto; padding: 7px 10px; font-size: 0.88rem; }
+.filas .vacio-fila { justify-content: center; color: var(--texto-suave); border-style: dashed; }
+
+/* Lugares: nombre + límites de temperatura y humedad */
+.lugares > li { align-items: flex-end; }
+.lugares .nombre-lugar { flex: 1 1 180px; }
+.lugares .limites { display: grid; grid-template-columns: repeat(4, minmax(70px, 96px)); gap: 8px; }
+.lugares .limites label, .lugares .nombre-lugar label { display: block; font-size: 0.72rem; font-weight: 800; color: var(--texto-suave); margin-bottom: 3px; }
+.lugares .limites .control, .lugares .nombre-lugar .control { width: 100%; }
+.lugares .acciones { display: flex; gap: 8px; }
+
+/* Enlace de invitación */
+.enlace {
+  display: grid; gap: 8px; margin-top: 12px; padding: 12px 14px;
+  border: 2px dashed var(--tinta); border-radius: 14px; background: var(--mostaza-claro);
+}
+.enlace code { font-weight: 800; font-size: 0.85rem; overflow-wrap: anywhere; }
+
+/* Categorías */
+#categorias .chip { cursor: default; }
+#categorias .chip button { border: none; background: none; padding: 0 2px; cursor: pointer; color: inherit; }
+#categorias .chip button:hover { color: var(--tomate); }
+
+/* Sin permisos de administrador: lo editable se ve pero no se usa */
+.sin-permiso .solo-admin { display: none !important; }
+
+@media (max-width: 900px) {
+  .ajustes-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .lugares .limites { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .lugares .acciones { width: 100%; }
+  .lugares .acciones .btn { flex: 1; }
+}

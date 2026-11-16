@@ -10,6 +10,19 @@ const $$ = (s) => [...document.querySelectorAll(s)];
 let etapa = 0;
 const TITULOS = ["¡Hola! ¿Cómo te llamas?", "Cuéntanos de tu hogar", "Último paso: tu contraseña"];
 
+// Enlace de invitación (registro.html?invitacion=…): la persona se une a ese
+// hogar, así que no se pregunta por el hogar (paso 2).
+const tokenInvitacion = new URLSearchParams(location.search).get("invitacion");
+let invitacion = null;
+async function prepararInvitacion() {
+  if (!tokenInvitacion) return;
+  invitacion = await QHDC.leerInvitacion(tokenInvitacion);
+  if (!invitacion) { error("Esta invitación ya no es válida. Puedes crear tu propio hogar o pedir una nueva."); return; }
+  $("#email").value = invitacion.correo;
+  $("#email").readOnly = true;
+  mostrar();
+}
+
 // ---------- Tema ----------
 function pintarTema() {
   const oscuro = Tema.actual() === "oscuro";
@@ -25,10 +38,14 @@ function mostrar() {
   $$(".etapa").forEach((e) => e.classList.toggle("oculto", Number(e.dataset.etapa) !== etapa));
   $$("#etapas span").forEach((s, i) => s.classList.toggle("hecha", i <= etapa));
   $("#tituloEtapa").textContent = TITULOS[etapa];
-  $("#textoEtapa").textContent = `Paso ${etapa + 1} de 3`;
+  $("#textoEtapa").textContent = invitacion
+    ? `Te invitaron a ${invitacion.hogar} como ${invitacion.rol.toLowerCase()} · Paso ${etapa === 0 ? 1 : 2} de 2`
+    : `Paso ${etapa + 1} de 3`;
   $("#btnAtras").style.visibility = etapa === 0 ? "hidden" : "visible";
-  $("#btnSiguiente").innerHTML = etapa === 2 ? '<i class="fa-solid fa-house-circle-check"></i> Crear mi cocina' : 'Continuar <i class="fa-solid fa-arrow-right"></i>';
-  $("#error").classList.add("oculto");
+  $("#btnSiguiente").innerHTML = etapa === 2
+    ? (invitacion ? '<i class="fa-solid fa-people-roof"></i> Unirme a mi hogar' : '<i class="fa-solid fa-house-circle-check"></i> Crear mi cocina')
+    : 'Continuar <i class="fa-solid fa-arrow-right"></i>';
+  if (!tokenInvitacion || invitacion) $("#error").classList.add("oculto");
   const primero = $(`.etapa[data-etapa="${etapa}"] input`);
   if (primero) primero.focus();
 }
@@ -48,7 +65,7 @@ function validar() {
   }
   if (etapa === 1 && !$("#hogar").value.trim()) return error("Ponle un nombre a tu hogar.", $("#hogar"));
   if (etapa === 2) {
-    if ($("#password").value.length < 6) return error("Usa al menos 6 caracteres.", $("#password"));
+    if ($("#password").value.length < 8) return error("Usa al menos 8 caracteres.", $("#password"));
     if ($("#password").value !== $("#confirmar").value) return error("Las contraseñas no coinciden.", $("#confirmar"));
     if (!$("#terminos").checked) return error("Acepta los términos para continuar.");
   }
@@ -61,12 +78,12 @@ const elegidos = (sel) => $$(`${sel} .chip[aria-pressed="true"]`).map((c) => c.t
 $("#formRegistro").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!validar()) return;
-  if (etapa < 2) { etapa++; Sonido.subir(); mostrar(); return; }
+  if (etapa < 2) { etapa = invitacion ? 2 : etapa + 1; Sonido.subir(); mostrar(); return; }
   const boton = $("#btnSiguiente");
   boton.disabled = true;
   const r = await QHDC.registrar({
     nombre: $("#nombre").value, email: $("#email").value, password: $("#password").value, hogar: $("#hogar").value,
-    personas: elegidos("#personas")[0], lugares: elegidos("#lugares"),
+    personas: elegidos("#personas")[0], lugares: elegidos("#lugares"), invitacion: invitacion ? tokenInvitacion : undefined,
   });
   boton.disabled = false;
   if (r.error) {
@@ -80,7 +97,7 @@ $("#formRegistro").addEventListener("submit", async (e) => {
   try { Object.keys(localStorage).filter((k) => k.startsWith("qhdc_tour_")).forEach((k) => localStorage.removeItem(k)); } catch (err) { /* sin almacenamiento */ }
   setTimeout(() => (location.href = "dashboard.html"), 900);
 });
-$("#btnAtras").addEventListener("click", () => { if (etapa > 0) { etapa--; mostrar(); } });
+$("#btnAtras").addEventListener("click", () => { if (etapa > 0) { etapa = invitacion ? 0 : etapa - 1; mostrar(); } });
 
 // ---------- Chips (selección) ----------
 $("#personas").addEventListener("click", (e) => {
@@ -96,7 +113,7 @@ $("#lugares").addEventListener("click", (e) => {
 $("#password").addEventListener("input", () => {
   const v = $("#password").value;
   let n = 0;
-  if (v.length >= 6) n++;
+  if (v.length >= 8) n++;
   if (/\d/.test(v) && /[a-z]/i.test(v)) n++;
   if (v.length >= 10 || /[^a-z0-9]/i.test(v)) n++;
   n = v ? Math.max(1, n) : 0;
@@ -111,3 +128,4 @@ $$(".ver-clave").forEach((b) => b.addEventListener("click", () => {
 }));
 
 mostrar();
+prepararInvitacion();

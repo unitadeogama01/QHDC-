@@ -103,3 +103,31 @@ document.querySelectorAll(".ver-clave").forEach((b) => b.addEventListener("click
   b.innerHTML = `<i class="fa-solid ${ver ? "fa-eye-slash" : "fa-eye"}"></i>`;
   b.setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
 }));
+
+// ---------- Entrar con Google (solo si el servidor lo tiene configurado) ----------
+// Google entrega un "credential" (token firmado); el servidor lo verifica.
+(async () => {
+  const { google: clientId } = await QHDC.configuracionAcceso();
+  if (!clientId) return;
+  const s = document.createElement("script");
+  s.src = "https://accounts.google.com/gsi/client";
+  s.async = true;
+  s.onload = () => {
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (respuesta) => {
+        try {
+          await QHDC.entrarConGoogle(respuesta.credential);
+          Sonido.exito();
+          location.href = "dashboard.html";
+        } catch (err) {
+          $("#formLogin").classList.remove("oculto");
+          error(err.message);
+        }
+      },
+    });
+    window.google.accounts.id.renderButton($("#botonGoogle"), { theme: "outline", size: "large", text: "continue_with", shape: "pill", locale: "es" });
+    $("#google").classList.remove("oculto");
+  };
+  document.head.appendChild(s);
+})();

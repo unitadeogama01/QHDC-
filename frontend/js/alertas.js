@@ -120,6 +120,36 @@ $("#filtros").addEventListener("click", (e) => {
 
 dibujar();
 
+// ---------- Historial de 30 días (se pide al servidor al abrirlo) ----------
+const ICONO_TIPO = {
+  caducidad_proxima: "fa-hourglass-half", caducado: "fa-calendar-xmark", existencia_baja: "fa-arrow-trend-down",
+  dispositivo_desconectado: "fa-plug-circle-xmark", ambiente: "fa-temperature-half", frescura: "fa-wind",
+};
+const cuando = (f) => UI.fecha(String(f).replace(" ", "T"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+async function dibujarHistorial() {
+  const lista = $("#listaHistorial");
+  lista.innerHTML = '<li><i class="fa-solid fa-rotate"></i><span>Cargando…</span></li>';
+  try {
+    const avisos = await QHDC.historialAvisos(30);
+    $("#numHistorial").textContent = avisos.length;
+    $("#numHistorial").classList.toggle("oculto", !avisos.length);
+    lista.innerHTML = avisos.length
+      ? avisos.map((a) => `
+        <li>
+          <i class="fa-solid ${ICONO_TIPO[a.tipo] || "fa-bell"}"></i>
+          <span>${esc(a.titulo)}<br><small>${esc(cuando(a.creado))}${a.resuelto ? ` · se resolvió el ${esc(cuando(a.resuelto))}` : ""}</small></span>
+          ${a.activo
+            ? `<span class="badge ${a.nivel === "peligro" ? "badge-peligro" : "badge-aviso"}">Activo</span>`
+            : '<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Resuelto</span>'}
+        </li>`).join("")
+      : '<li><i class="fa-solid fa-champagne-glasses"></i><span>No hubo avisos en los últimos 30 días.</span></li>';
+  } catch (e) {
+    lista.innerHTML = `<li><i class="fa-solid fa-triangle-exclamation"></i><span>${esc(e.message)}</span></li>`;
+  }
+}
+$("#historial").addEventListener("toggle", () => { if ($("#historial").open) dibujarHistorial(); });
+
 // ============================================================
 //  RECORRIDO DE ESTA PANTALLA
 // ============================================================

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajustes — QHDC!</title>
+  <link rel="icon" href="img/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/ajustes.css">
+  <script src="js/interaccion.js"></script>
+</head>
+<body data-pagina="ajustes">
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Menú principal"></aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-titulo">
+          <h1>Ajustes</h1>
+          <p>Tu cuenta, tu hogar, tus lugares y tus categorías</p>
+        </div>
+        <div class="topbar-acciones" id="topbarAcciones"></div>
+      </header>
+
+      <main class="contenido">
+        <div class="ajustes-layout">
+          <!-- ===== Mi perfil ===== -->
+          <section class="tarjeta" aria-labelledby="tituloPerfil">
+            <div class="titulo-seccion">
+              <h2 id="tituloPerfil"><span class="ico-titulo"><i class="fa-solid fa-user"></i></span> Mi perfil</h2>
+            </div>
+            <form id="formPerfil" novalidate>
+              <div class="campo">
+                <label for="pNombre">Nombre</label>
+                <input class="control" id="pNombre" name="nombre" maxlength="100" autocomplete="name" required>
+              </div>
+              <div class="campo">
+                <label for="pCorreo">Correo</label>
+                <input class="control" id="pCorreo" name="correo" type="email" maxlength="255" autocomplete="email" required>
+                <small id="pGoogle" class="oculto"><i class="fa-brands fa-google"></i> Vinculado con tu cuenta de Google</small>
+              </div>
+              <button class="btn btn-principal" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar perfil</button>
+            </form>
+
+            <h3 class="subtitulo"><i class="fa-solid fa-key"></i> Contraseña</h3>
+            <form id="formContrasena" novalidate>
+              <div class="campo" id="campoActual">
+                <label for="cActual">Contraseña actual</label>
+                <input class="control" id="cActual" name="actual" type="password" autocomplete="current-password">
+              </div>
+              <div class="campos-2">
+                <div class="campo">
+                  <label for="cNueva">Nueva</label>
+                  <input class="control" id="cNueva" name="nueva" type="password" minlength="8" autocomplete="new-password" required>
+                </div>
+                <div class="campo">
+                  <label for="cRepetir">Repítela</label>
+                  <input class="control" id="cRepetir" name="repetir" type="password" minlength="8" autocomplete="new-password" required>
+                </div>
+              </div>
+              <small class="texto-suave">Al menos 8 caracteres. Se cerrará tu sesión en los demás dispositivos.</small>
+              <div><button class="btn" type="submit"><i class="fa-solid fa-lock"></i> Cambiar contraseña</button></div>
+            </form>
+          </section>
+
+          <!-- ===== Mi hogar ===== -->
+          <section class="tarjeta" aria-labelledby="tituloHogar">
+            <div class="titulo-seccion">
+              <h2 id="tituloHogar"><span class="ico-titulo"><i class="fa-solid fa-house"></i></span> Mi hogar</h2>
+              <span class="badge badge-info oculto" id="soloAdmin"><i class="fa-solid fa-lock"></i> Solo el administrador cambia esto</span>
+            </div>
+            <form id="formHogar" novalidate>
+              <div class="campo">
+                <label for="hNombre">Nombre del hogar</label>
+                <input class="control" id="hNombre" name="nombre" maxlength="100" required>
+              </div>
+              <div class="campos-2">
+                <div class="campo">
+                  <label for="hPersonas">¿Cuántos viven?</label>
+                  <select class="control" id="hPersonas" name="personas">
+                    <option value="1-2">1 a 2</option><option value="3-4">3 a 4</option><option value="5+">5 o más</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label for="hAviso">Avisar de la caducidad</label>
+                  <select class="control" id="hAviso" name="diasAviso">
+                    <option value="1">1 día antes</option><option value="2">2 días antes</option>
+                    <option value="3">3 días antes</option><option value="5">5 días antes</option><option value="7">1 semana antes</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-principal solo-admin" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar hogar</button>
+            </form>
+
+            <h3 class="subtitulo"><i class="fa-solid fa-people-roof"></i> Quiénes viven aquí</h3>
+            <ul class="filas" id="miembros"></ul>
+
+            <div class="solo-admin">
+              <h3 class="subtitulo"><i class="fa-solid fa-envelope-open-text"></i> Invitar a alguien</h3>
+              <form id="formInvitar" class="fila-form" novalidate>
+                <input class="control" id="iCorreo" name="correo" type="email" placeholder="correo@ejemplo.com" aria-label="Correo de la persona" required>
+                <select class="control" name="rol" aria-label="Rol"><option value="miembro">Miembro</option><option value="administrador">Administrador</option></select>
+                <button class="btn btn-mostaza" type="submit"><i class="fa-solid fa-paper-plane"></i> Invitar</button>
+              </form>
+              <div class="enlace oculto" id="enlaceCaja">
+                <small>Comparte este enlace (vale 7 días). Debe registrarse con ese mismo correo:</small>
+                <code id="enlace"></code>
+                <div class="fila">
+                  <button class="btn btn-sm" type="button" id="btnCopiarEnlace" data-sonido="ninguno"><i class="fa-solid fa-copy"></i> Copiar</button>
+                  <a class="btn btn-sm btn-oliva" id="btnWhatsapp" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Enviar por WhatsApp</a>
+                </div>
+              </div>
+              <ul class="filas" id="invitaciones"></ul>
+            </div>
+          </section>
+
+          <!-- ===== Avisos (cada persona elige los suyos) ===== -->
+          <section class="tarjeta ancho" aria-labelledby="tituloAvisos">
+            <div class="titulo-seccion">
+              <h2 id="tituloAvisos"><span class="ico-titulo"><i class="fa-solid fa-bell"></i></span> Avisos</h2>
+            </div>
+            <p class="texto-suave texto-chico">Elige qué avisos quieres ver. Solo cambia para ti; tu familia elige los suyos.</p>
+            <ul class="filas" id="avisos">
+              <li>
+                <span class="prod-icono ico-tomate"><i class="fa-solid fa-hourglass-half"></i></span>
+                <div class="info"><strong>Caducidad</strong><small>Lo que caduca pronto o ya caducó</small></div>
+                <label class="interruptor"><input type="checkbox" data-aviso="caducidad" aria-label="Avisos de caducidad"><span class="riel"></span></label>
+              </li>
+              <li>
+                <span class="prod-icono ico-mostaza"><i class="fa-solid fa-arrow-trend-down"></i></span>
+                <div class="info"><strong>Se acaba</strong><small>Alimentos con poca existencia</small></div>
+                <label class="interruptor"><input type="checkbox" data-aviso="existencias" aria-label="Avisos de existencias bajas"><span class="riel"></span></label>
+              </li>
+              <li>
+                <span class="prod-icono ico-petroleo"><i class="fa-solid fa-microchip"></i></span>
+                <div class="info"><strong>Dispositivos</strong><small>Desconexión, temperatura y humedad fuera de rango</small></div>
+                <label class="interruptor"><input type="checkbox" data-aviso="dispositivos" aria-label="Avisos de dispositivos"><span class="riel"></span></label>
+              </li>
+            </ul>
+          </section>
+
+          <!-- ===== Lugares y ambiente ===== -->
+          <section class="tarjeta ancho" aria-labelledby="tituloLugares">
+            <div class="titulo-seccion">
+              <h2 id="tituloLugares"><span class="ico-titulo"><i class="fa-solid fa-temperature-half"></i></span> Lugares y ambiente</h2>
+            </div>
+            <p class="texto-suave texto-chico">Rango de temperatura y humedad de cada lugar. Si el sensor (DHT22) mide algo fuera de él, te llega un aviso. Deja vacío lo que no quieras vigilar.</p>
+            <ul class="filas lugares" id="lugares"></ul>
+            <form id="formLugar" class="fila-form solo-admin" novalidate>
+              <input class="control" name="nombre" maxlength="80" placeholder="Nuevo lugar, ej. Alacena de arriba" aria-label="Nombre del lugar" required>
+              <select class="control" name="tipo" aria-label="Tipo de lugar">
+                <option value="despensa">Despensa</option><option value="refrigerador">Refrigerador</option>
+                <option value="congelador">Congelador</option><option value="otro">Otro</option>
+              </select>
+              <button class="btn" type="submit"><i class="fa-solid fa-plus"></i> Agregar</button>
+            </form>
+          </section>
+
+          <!-- ===== Categorías ===== -->
+          <section class="tarjeta ancho" aria-labelledby="tituloCategorias">
+            <div class="titulo-seccion">
+              <h2 id="tituloCategorias"><span class="ico-titulo"><i class="fa-solid fa-tags"></i></span> Categorías</h2>
+            </div>
+            <p class="texto-suave texto-chico">Las generales (<i class="fa-solid fa-lock"></i>) son de todos. Puedes agregar las tuyas; si borras una, sus alimentos pasan a "Otros".</p>
+            <div class="chips" id="categorias"></div>
+            <form id="formCategoria" class="fila-form solo-admin" novalidate>
+              <input class="control" name="nombre" maxlength="80" placeholder="Nueva categoría, ej. Botanas" aria-label="Nombre de la categoría" required>
+              <button class="btn" type="submit"><i class="fa-solid fa-plus"></i> Agregar</button>
+            </form>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script data-qhdc-src="js/app.js"></script>
+  <script data-qhdc-src="js/ajustes.js"></script>
+</body>
+</html>
